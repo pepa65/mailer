@@ -1,5 +1,3 @@
-// mailer - Simple commandline mail sender
-
 package main
 
 import (
