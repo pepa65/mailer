@@ -6,11 +6,11 @@ stages:
 building:
   stage: build
   script:
-    - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
-    - GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi
-    - GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd
-    - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
-    - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
+    - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"; chmod +x mailer
+    - GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi; chmod +x mailer_pi
+    - GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd; chmod +x mailer_bsd
+    - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx; chmod +x mailer_osx
+    - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe; chmod +x mailer.exe
   artifacts:
     name: mailer
     paths:

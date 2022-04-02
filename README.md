@@ -1,28 +1,43 @@
 # mailer
-**Simple commandline mail sender**
-
+## Simple commandline mail sender
 * **v0.1.0**
-* Repo: github.com/pepa65/mailer
+* Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
+* Contact: pepa65 <pepa65@passchier.net>
 * Config-less (it's not a bug, it's a feature..!)
 * No-install single binary
 * Defaulting to gmail's smtp server
 
 ## Install
-* **gobinaries.com**: `wget -qO- gobinaries.com/pepa65/mailer |sh`
-* **Go get** If [Golang](https://golang.org/) is installed properly:
-  `go get github.com/pepa65/mailer`
-* **Go build/install**
-  - `git clone https://github.com/pepa65/mailer; cd mailer; go install`
-  - Smaller binary: `go build -ldflags="-s -w"; upx --brute mailer; mv mailer ~/go/bin/`
-* **Build for other architectures**
-  - `GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi`
-  - `GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd`
-  - `GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx`
-  - `GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe`
+```
+# gobinaries.com:
+wget -qO- gobinaries.com/pepa65/mailer |sh
+
+# Go get (If Golang is installed properly):
+go get github.com/pepa65/mailer
+
+# Download:
+wget https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINARY?job=building
+# replace BINARY by: mailer, mailer_pi, mailer_osx, mailer_bsd or mailer.exe
+
+# Go build/install:
+git clone https://github.com/pepa65/mailer; cd mailer; go install
+
+# Smaller binaries:
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
+GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi
+GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
+GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
+
+# More extreme shrinking:
+upx --brute mailer*
+
+# Move them in the Go-binary path:
+mv mailer* ~/go/bin/
 
 ## Usage
 ```
-mailer - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.1.0 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text
