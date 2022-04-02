@@ -1,6 +1,7 @@
 # mailer
 **Simple commandline mail sender**
 
+* **v0.1.0**
 * Repo: github.com/pepa65/mailer
 * Config-less (it's not a bug, it's a feature..!)
 * No-install single binary

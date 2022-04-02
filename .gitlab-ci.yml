@@ -1,0 +1,22 @@
+image: golang:latest
+
+stages:
+  - build
+
+building:
+  stage: build
+  script:
+    - go get -u github.com/pepa65/mailer
+    - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
+    - GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi
+    - GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd
+    - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
+    - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
+  artifacts:
+    name: mailer
+    paths:
+     - mailer
+     - mailer_pi
+     - mailer_bsd
+     - mailer_osx
+     - mailer.exe
