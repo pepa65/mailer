@@ -34,6 +34,7 @@ upx --brute mailer*
 
 # Move them in the Go-binary path:
 mv mailer* ~/go/bin/
+```
 
 ## Usage
 ```
