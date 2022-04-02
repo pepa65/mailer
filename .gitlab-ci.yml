@@ -6,7 +6,7 @@ stages:
 building:
   stage: build
   script:
-    - go get -u github.com/pepa65/mailer
+    - go install github.com/pepa65/mailer
     - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
     - GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi
     - GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd
