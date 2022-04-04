@@ -6,6 +6,7 @@
 * Config-less (it's not a bug, it's a feature..!)
 * No-install single binary
 * Defaulting to gmail's smtp server
+* Licence: GPLv3+
 
 ## Install
 ```
