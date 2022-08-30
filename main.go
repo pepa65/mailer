@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const version = "0.1.0"
+const version = "0.2.0"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -270,5 +270,6 @@ func main() {
 	err := smtp.SendMail(server+":"+port, auth, user, toall, []byte(body))
 	if err != nil { // No news is good news
 		fmt.Println("Error: ", err)
+		os.Exit(1)
 	}
 }

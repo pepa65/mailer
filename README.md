@@ -1,6 +1,6 @@
 # mailer
 ## Simple commandline mail sender
-* **v0.1.0**
+* **v0.2.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Contact: pepa65 <pepa65@passchier.net>
 * Config-less (it's not a bug, it's a feature..!)
@@ -39,7 +39,7 @@ mv mailer* ~/go/bin/
 
 ## Usage
 ```
-mailer v0.1.0 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.2.0 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text
@@ -60,3 +60,5 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     Emails can be like "you@and.me" or like "Some String <you@and.me>",
     and need to be comma-separated. Any arguments must survive shell-parsing!
 ```
+
+When an error occurs it is printed to stderr and exitcode 1 is returned.
