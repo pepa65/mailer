@@ -17,7 +17,7 @@ wget -qO- gobinaries.com/pepa65/mailer |sh
 go get github.com/pepa65/mailer
 
 # Download:
-wget https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINARY?job=building
+wget -O mailer https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINARY?job=building
 # replace BINARY by: mailer, mailer_pi, mailer_osx, mailer_bsd or mailer.exe
 
 # Go build/install:
