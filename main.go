@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const version = "0.2.0"
+const version = "0.2.1"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"

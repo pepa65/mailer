@@ -1,6 +1,6 @@
 # mailer
 ## Simple commandline mail sender
-* **v0.2.0**
+* **v0.2.1**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Contact: pepa65 <pepa65@passchier.net>
 * Config-less (it's not a bug, it's a feature..!)
@@ -24,11 +24,11 @@ wget -O mailer https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINA
 git clone https://github.com/pepa65/mailer; cd mailer; go install
 
 # Smaller binaries:
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
-GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi
-GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
-GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
+CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -ldflags="-s -w" -o mailer_pi
+CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build -ldflags="-s -w" -o mailer_bsd
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
 
 # More extreme shrinking:
 upx --brute mailer*
@@ -39,7 +39,7 @@ mv mailer* ~/go/bin/
 
 ## Usage
 ```
-mailer v0.2.0 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.2.1 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text
