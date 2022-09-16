@@ -3,13 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"crypto/tls"
 	"io/ioutil"
 	"net/smtp"
 	"os"
 	"strings"
+
+	"github.com/jordan-wright/email"
 )
 
-const version = "0.2.1"
+const version = "0.3.0"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -30,6 +33,7 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     OPTIONALS:
         -S|--server SERVER        Mail server (default: `+defaultserver+`)
         -P|--port PORT            Port, like 25 or 465 (default: `+defaultport+`)
+        -T|--tls                  Use SSL/TLS instead of (the default) StartTLS
         -c|--cc EMAILS            Cc email(s)
         -b|--bcc EMAILS           Bcc email(s)
         -r|--reply EMAILS         Reply-To email(s)
@@ -40,22 +44,10 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
 `, self, version)
 }
 
-func error(msg string) {
+func errormsg(msg string) {
 	usage()
 	fmt.Printf("\nERROR %v\n", msg)
 	os.Exit(1)
-}
-
-func extract(emails string) []string {
-	toall := strings.Split(emails, ",")
-	for i, email := range toall {
-		a := strings.Index(email, "<")
-		b := strings.Index(email, ">")
-		if a+1 < b && a+1 > 0 {
-			toall[i] = email[a+1 : b]
-		}
-	}
-	return toall
 }
 
 func main() {
@@ -76,120 +68,123 @@ func main() {
 
 	// Parse commandline
 	i = 1
-	from, to, subject, user, password, server, port, cc, bcc, reply, message, file := "", "", "", "", "", "", "", "", "", "", "", ""
+	var from, to, subject, user, password, server, port, cc, bcc, reply, message, file string
+	var ssltls bool
 	for i < nArgs {
 		switch os.Args[i] {
 		case "-f", "--from":
 			if from != "" {
-				error("Can't use -f/--from twice")
+				errormsg("Can't use -f/--from twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -f/--from must have an argument")
+				errormsg("Flag -f/--from must have an argument")
 			}
 			from = os.Args[i+1]
 			i = i + 1
 		case "-t", "--to":
 			if to != "" {
-				error("Can't use -t/--to twice")
+				errormsg("Can't use -t/--to twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -t/--to must have an argument")
+				errormsg("Flag -t/--to must have an argument")
 			}
 			to = os.Args[i+1]
 			i = i + 1
 		case "-s", "--subject":
 			if subject != "" {
-				error("Can't use -s/--subject twice")
+				errormsg("Can't use -s/--subject twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -s/--subject must have an argument")
+				errormsg("Flag -s/--subject must have an argument")
 			}
 			subject = os.Args[i+1]
 			i = i + 1
 		case "-u", "--user":
 			if user != "" {
-				error("Can't use -u/--user twice")
+				errormsg("Can't use -u/--user twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -u/--user must have an argument")
+				errormsg("Flag -u/--user must have an argument")
 			}
 			user = os.Args[i+1]
 			i = i + 1
 		case "-p", "--password":
 			if password != "" {
-				error("Can't use -p/--password twice")
+				errormsg("Can't use -p/--password twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -p/--password must have an argument")
+				errormsg("Flag -p/--password must have an argument")
 			}
 			password = os.Args[i+1]
 			i = i + 1
 		case "-S", "--server":
 			if server != "" {
-				error("Can't use -S/--server twice")
+				errormsg("Can't use -S/--server twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -S/--server must have an argument")
+				errormsg("Flag -S/--server must have an argument")
 			}
 			server = os.Args[i+1]
 			i = i + 1
 		case "-P", "--port":
 			if port != "" {
-				error("Can't use -P/--port twice")
+				errormsg("Can't use -P/--port twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -P/--port must have an argument")
+				errormsg("Flag -P/--port must have an argument")
 			}
 			port = os.Args[i+1]
 			i = i + 1
+		case "-T", "--tls":
+			ssltls = true
 		case "-c", "--cc":
 			if cc != "" {
-				error("Can't use -c/--cc twice")
+				errormsg("Can't use -c/--cc twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -c/--cc must have an argument")
+				errormsg("Flag -c/--cc must have an argument")
 			}
 			cc = os.Args[i+1]
 			i = i + 1
 		case "-b", "--bcc":
 			if bcc != "" {
-				error("Can't use -b/--bcc twice")
+				errormsg("Can't use -b/--bcc twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -b/--bcc must have an argument")
+				errormsg("Flag -b/--bcc must have an argument")
 			}
 			bcc = os.Args[i+1]
 			i = i + 1
 		case "-r", "--reply":
 			if reply != "" {
-				error("Can't use -r/--reply twice")
+				errormsg("Can't use -r/--reply twice")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -r/--reply must have an argument")
+				errormsg("Flag -r/--reply must have an argument")
 			}
 			reply = os.Args[i+1]
 			i = i + 1
 		case "-m", "--message":
 			if message != "" {
-				error("Can't use -m/--message twice")
+				errormsg("Can't use -m/--message twice")
 			}
 			if file != "" {
-				error("Can't use both -m/--message and -F/--file flags")
+				errormsg("Can't use both -m/--message and -F/--file flags")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -m/--message must have an argument")
+				errormsg("Flag -m/--message must have an argument")
 			}
 			message = os.Args[i+1]
 			i = i + 1
 		case "-F", "--file":
 			if file != "" {
-				error("Can't use -F/--file twice")
+				errormsg("Can't use -F/--file twice")
 			}
 			if message != "" {
-				error("can't use both -m/--message and -F/--file flags")
+				errormsg("can't use both -m/--message and -F/--file flags")
 			}
 			if i+2 > len(os.Args) {
-				error("Flag -F/--file must have an argument")
+				errormsg("Flag -F/--file must have an argument")
 			}
 			file = os.Args[i+1]
 			i = i + 1
@@ -197,30 +192,30 @@ func main() {
 			usage()
 			return
 		default:
-			error("unknown commandline option: " + os.Args[i])
+			errormsg("unknown commandline option: " + os.Args[i])
 		}
 		i += 1
 	}
 	if to == "" {
-		error("Mandatory option -t/--to missing")
+		errormsg("Mandatory option -t/--to missing")
 	}
 	if subject == "" {
-		error("Mandatory option -s/--subject missing")
+		errormsg("Mandatory option -s/--subject missing")
 	}
 	if user == "" {
-		error("Mandatory option -u/--user missing")
+		errormsg("Mandatory option -u/--user missing")
 	}
 	if password == "" {
-		error("Mandatory option -p/--password missing")
-	}
-	if message == "" && file == "" {
-		error("Content missing, neither -m/--message nor -F/--file given")
+		errormsg("Mandatory option -p/--password missing")
 	}
 	if server == "" {
 		server = defaultserver
 	}
 	if port == "" {
 		port = defaultport
+	}
+	if message == "" && file == "" {
+		errormsg("Content missing, neither -m/--message nor -F/--file given")
 	}
 	if password == "-" {
 		pwd := []byte{}
@@ -236,38 +231,40 @@ func main() {
 	} else if strings.Index(from, "@") < 0 { // FROM includes USER as email if no email given
 		from += " <" + user + ">"
 	}
-	// Assemble complete To list of emails
-	all := to
-	if cc != "" {
-		all += "," + cc
-	}
-	if bcc != "" {
-		all += "," + bcc
-	}
-	toall := extract(all)
 
-	// Assemble email with headers and body
-	body := "To: " + to + "\nFrom: " + from + "\n"
-	if reply != "" {
-		body = body + "Reply-To: " + reply + "\n"
-	}
-	if cc != "" {
-		body += "Cc: " + cc + "\n"
-	}
-	body += "Subject: " + subject + "\n\n"
-	if message != "" {
-		body += message
-	} else {
+	// Populate email
+	if message == "" {
 		f, err := ioutil.ReadFile(file)
 		if err != nil {
-			error("File not found: '" + file + "'")
+			errormsg("File not found: '" + file + "'")
 		}
-		body += string(f)
+		message = string(f)
 	}
+	mail := email.NewEmail()
+	mail.From = from
+	mail.To = strings.Split(to, ",")
+	if bcc != "" {
+		mail.Bcc = strings.Split(bcc, ",")
+	}
+	if cc != "" {
+		mail.Cc = strings.Split(cc, ",")
+	}
+	if reply != "" {
+		mail.ReplyTo = strings.Split(reply, ",")
+	}
+	mail.Subject = subject
+	mail.Text = []byte(message)
 
-	// Send with net/smtp.sendmail
+	// Send mail
+	serverport := server+":"+port
 	auth := smtp.PlainAuth("", user, password, server)
-	err := smtp.SendMail(server+":"+port, auth, user, toall, []byte(body))
+	tc := &tls.Config{ServerName:server, InsecureSkipVerify:false}
+	var err error
+	if ssltls {
+		err = mail.SendWithTLS(serverport, auth, tc)
+	} else {
+		err = mail.SendWithStartTLS(serverport, auth, tc)
+	}
 	if err != nil { // No news is good news
 		fmt.Println("Error: ", err)
 		os.Exit(1)

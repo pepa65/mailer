@@ -1,6 +1,6 @@
 # mailer
 ## Simple commandline mail sender
-* **v0.2.1**
+* **v0.3.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Contact: pepa65 <pepa65@passchier.net>
 * Config-less (it's not a bug, it's a feature..!)
@@ -39,7 +39,7 @@ mv mailer* ~/go/bin/
 
 ## Usage
 ```
-mailer v0.2.1 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.3.0 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text
@@ -52,6 +52,7 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     OPTIONALS:
         -S|--server SERVER        Mail server (default: smtp.gmail.com)
         -P|--port PORT            Port, like 25 or 465 (default: 587)
+        -T|--tls                  Use SSL/TLS instead of (the default) StartTLS
         -c|--cc EMAILS            Cc email(s)
         -b|--bcc EMAILS           Bcc email(s)
         -r|--reply EMAILS         Reply-To email(s)
