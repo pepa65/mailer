@@ -12,7 +12,7 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-const version = "0.3.0"
+const version = "0.4.0"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -267,6 +267,6 @@ func main() {
 	}
 	if err != nil { // No news is good news
 		fmt.Println("Error: ", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 }
