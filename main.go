@@ -12,7 +12,7 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-const version = "0.4.1"
+const version = "0.4.2"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -20,7 +20,7 @@ var defaultserver = "smtp.gmail.com"
 var self string
 
 func usage() {
-	fmt.Printf(`%v v%v - Commandline mail sender (repo: github.com/pepa65/mailer)
+	fmt.Printf(`%v v%v - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text
@@ -37,10 +37,10 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
         -c|--cc EMAILS            Cc email(s)
         -b|--bcc EMAILS           Bcc email(s)
         -r|--reply EMAILS         Reply-To email(s)
-        -f|--from NAME            The name to use with the USER's email (*)
-    (*) If USER is not an email address, NAME should contain one!
-    Emails can be like "you@and.me" or like "Some String <you@and.me>",
-    and need to be comma-separated. Any arguments must survive shell-parsing!
+        -f|--from NAME            The name to use with the USER's email
+    - If USER is not an email address, NAME should contain one!
+    - Emails can be like "you@and.me" or like "Some String <you@and.me>",
+      and need to be comma-separated. Any arguments must survive shell-parsing!
     - Commandline errors print help text and the error to stdout and return 1.
     - Send errors print the error to stdout and return exitcode 2.
 `, self, version)
