@@ -12,7 +12,7 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-const version = "0.4.0"
+const version = "0.4.1"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -41,6 +41,8 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     (*) If USER is not an email address, NAME should contain one!
     Emails can be like "you@and.me" or like "Some String <you@and.me>",
     and need to be comma-separated. Any arguments must survive shell-parsing!
+    - Commandline errors print help text and the error to stdout and return 1.
+    - Send errors print the error to stdout and return exitcode 2.
 `, self, version)
 }
 
