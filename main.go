@@ -12,7 +12,7 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-const version = "0.4.2"
+const version = "0.5.1"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -23,26 +23,28 @@ func usage() {
 	fmt.Printf(`%v v%v - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
-        -m|--message TEXT         Message text
-        -F|--file FILENAME        File containing the message text
+        -m|--message TEXT         Message text.
+        -F|--file FILENAME        File containing the message text.
     MANDATORIES:
-        -t|--to EMAILS            To email(s)
-        -s|--subject TEXT         Subject line
-        -u|--user USER            For logging in to mail server (*)
-        -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin
+        -t|--to EMAILS            To email(s).
+        -s|--subject TEXT         Subject line.
+        -u|--user USER            For logging in to mail server. [1]
+        -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin.
     OPTIONALS:
-        -S|--server SERVER        Mail server (default: `+defaultserver+`)
-        -P|--port PORT            Port, like 25 or 465 (default: `+defaultport+`)
-        -T|--tls                  Use SSL/TLS instead of (the default) StartTLS
-        -c|--cc EMAILS            Cc email(s)
-        -b|--bcc EMAILS           Bcc email(s)
-        -r|--reply EMAILS         Reply-To email(s)
-        -f|--from NAME            The name to use with the USER's email
-    - If USER is not an email address, NAME should contain one!
-    - Emails can be like "you@and.me" or like "Some String <you@and.me>",
-      and need to be comma-separated. Any arguments must survive shell-parsing!
-    - Commandline errors print help text and the error to stdout and return 1.
-    - Send errors print the error to stdout and return exitcode 2.
+        -S|--server SERVER        Mail server (default: `+defaultserver+`).
+        -P|--port PORT            Port, like 25 or 465 (default: `+defaultport+`). [3]
+        -T|--tls                  Use SSL/TLS instead of StartTLS. [3]
+        -c|--cc EMAILS            Cc email(s).
+        -b|--bcc EMAILS           Bcc email(s).
+        -r|--reply EMAILS         Reply-To email(s).
+        -f|--from NAME            The name to use with the USER's email.
+Notes:
+    1. If USER is not an email address, NAME should contain one!
+    2. Emails can be like "you@and.me" or like "Some String <you@and.me>" and
+       need to be comma-separated. Any arguments must survive shell-parsing!
+    3. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
+    4. Commandline errors print help text and the error to stdout and return 1.
+    5. Send errors print the error to stdout and return exitcode 2.
 `, self, version)
 }
 
@@ -215,6 +217,9 @@ func main() {
 	}
 	if port == "" {
 		port = defaultport
+	}
+	if port == "465" {
+		ssltls = true
 	}
 	if message == "" && file == "" {
 		errormsg("Content missing, neither -m/--message nor -F/--file given")
