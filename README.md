@@ -1,6 +1,6 @@
 # mailer
 ## Simple commandline mail sender
-* **v0.5.1**
+* **v0.5.2**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Contact: pepa65 <pepa65@passchier.net>
 * Config-less (it's not a bug, it's a feature..!)
@@ -39,7 +39,7 @@ mv mailer* ~/go/bin/
 
 ## Usage
 ```
-mailer v0.5.1 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.5.2 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text.

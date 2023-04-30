@@ -12,7 +12,7 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-const version = "0.5.1"
+const version = "0.5.2"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -235,7 +235,7 @@ func main() {
 
 	if from == "" { // FROM is USER if not given
 		from = user
-	} else if strings.Index(from, "@") < 0 { // FROM includes USER as email if no email given
+	} else if !strings.Contains(from, "@") { // FROM includes USER as email if no email given
 		from += " <" + user + ">"
 	}
 
