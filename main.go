@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"net/smtp"
 	"os"
@@ -12,7 +12,7 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-const version = "0.5.2"
+const version = "0.5.3"
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
@@ -263,9 +263,9 @@ func main() {
 	mail.Text = []byte(message)
 
 	// Send mail
-	serverport := server+":"+port
+	serverport := server + ":" + port
 	auth := smtp.PlainAuth("", user, password, server)
-	tc := &tls.Config{ServerName:server, InsecureSkipVerify:false}
+	tc := &tls.Config{ServerName: server, InsecureSkipVerify: false}
 	var err error
 	if ssltls {
 		err = mail.SendWithTLS(serverport, auth, tc)

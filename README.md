@@ -1,9 +1,12 @@
 # mailer
+[![Go Report Card](https://goreportcard.com/badge/github.com/pepa65/mailer)](https://goreportcard.com/report/github.com/pepa65/mailer)
+[![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
+
 ## Simple commandline mail sender
-* **v0.5.2**
+* **v0.5.3**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Contact: pepa65 <pepa65@passchier.net>
-* Config-less (it's not a bug, it's a feature..!)
+* Completely config-less (it's not a bug, it's a feature..!)
 * No-install single binary
 * Defaulting to gmail's smtp server
 * Licence: GPLv3+
@@ -14,7 +17,7 @@
 wget -qO- gobinaries.com/pepa65/mailer |sh
 
 # Go get (If Golang is installed properly):
-go get github.com/pepa65/mailer
+go install github.com/pepa65/mailer@latest
 
 # Download:
 wget -O mailer https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINARY?job=building
@@ -31,15 +34,18 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
 
 # More extreme shrinking:
-upx --brute mailer*
+upx mailer*
 
 # Move them in the Go-binary path:
 mv mailer* ~/go/bin/
+
+# Or to a manually managed binaries location:
+sudo mv mailer* /usr/local/bin/
 ```
 
 ## Usage
 ```
-mailer v0.5.2 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.5.3 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text.
