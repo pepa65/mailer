@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.6.0"
+const version = "0.6.1"
 
 type Config struct {
 	User     string
@@ -233,6 +233,10 @@ func main() {
 			errormsg("unknown commandline option: " + os.Args[i])
 		}
 		i += 1
+	}
+	cfgtls := strings.ToLower(cfg.TLS)
+	if cfgtls != "" && cfgtls != "0" && cfgtls != "no" && cfgtls != "false" && cfgtls != "off" {
+		ssltls = true
 	}
 	if cc == "" {
 		cc = cfg.CC

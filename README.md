@@ -2,7 +2,7 @@
 [![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
 
 # mailer - Simple commandline SMTP client
-* **v0.6.0**
+* **v0.6.1**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Completely config-less, send purely from the commandline
 * But parameters can also be set in `.mailer` in the current directory.
@@ -44,7 +44,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v0.6.0 - Simple commandline SMTP client (repo: github.com/pepa65/mailer)
+mailer v0.6.1 - Simple commandline SMTP client (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text.

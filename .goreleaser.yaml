@@ -6,7 +6,6 @@ builds:
       - windows
       - freebsd
       - openbsd
-      - plan9
       - linux
     goarch:
       - arm
