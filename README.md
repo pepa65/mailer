@@ -1,12 +1,11 @@
-# mailer
 [![Go Report Card](https://goreportcard.com/badge/github.com/pepa65/mailer)](https://goreportcard.com/report/github.com/pepa65/mailer)
 [![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
 
-## Simple commandline mail sender
-* **v0.5.3**
+# mailer - Simple commandline SMTP client
+* **v0.6.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
-* Contact: pepa65 <pepa65@passchier.net>
-* Completely config-less (it's not a bug, it's a feature..!)
+* Completely config-less, send purely from the commandline
+* But parameters can also be set in `.mailer` in the current directory.
 * No-install single binary
 * Defaulting to gmail's smtp server
 * Licence: GPLv3+
@@ -36,16 +35,16 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
 # More extreme shrinking:
 upx mailer*
 
-# Move them in the Go-binary path:
+# Move them in the Go-binary path (if in your PATH):
 mv mailer* ~/go/bin/
 
-# Or to a manually managed binaries location:
+# Or move to a manually managed binaries location:
 sudo mv mailer* /usr/local/bin/
 ```
 
 ## Usage
 ```
-mailer v0.5.3 - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+mailer v0.6.0 - Simple commandline SMTP client (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text.
@@ -69,5 +68,10 @@ Notes:
        need to be comma-separated. Any argument must survive shell-parsing!
     3. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
     4. Commandline errors print help text and the error to stdout and return 1.
-    5. Send errors print the error to stdout and return exitcode 2.
+    5. Errors with sending are printed to stdout and return exitcode 2.
+    6. If ".mailer" is present in PWD it will be read for config parameters.
 ```
+
+### Config file
+The file `.mailer` in the current directory can be used to set some or all parameters.
+See the example file in this repo.

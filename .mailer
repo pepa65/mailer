@@ -1,0 +1,27 @@
+## Must have `user:` and `password:`
+user: login@sm.tp
+password: thelongandsafepassword
+#server: smtp.google.com
+## If port is 465, TLS is automatic
+#port: 587
+#tls: yes
+## If `user:` is not an email, definitely fill in an email at `from:`
+#from:
+#cc: 
+#bcc: 
+#reply: 
+## Must have `to:` and `subject:`
+to: must@send.to
+subject: Test subject
+## Either `filename:` or `message:` should be given
+#filename: mailfile
+## `All non-empty lines in `message: |` must start with at least 1 space
+message: |
+ Hello there,
+
+ This is an example message. Long lines should be fine.
+
+ Newlines stay end-of-lines.
+ Grtz,
+
+ The mailer

@@ -1,3 +1,5 @@
+// main.go - Simple commandline SMTP client
+
 package main
 
 import (
@@ -10,17 +12,33 @@ import (
 	"strings"
 
 	"github.com/jordan-wright/email"
+	"gopkg.in/yaml.v2"
 )
 
-const version = "0.5.3"
+const version = "0.6.0"
+
+type Config struct {
+	User     string
+	Password string
+	Server   string
+	Port     string
+	TLS      string
+	From     string
+	CC       string
+	BCC      string
+	Reply    string
+	To       string
+	Subject  string
+	Message  string
+	File     string
+}
 
 var defaultport = "587"
 var defaultserver = "smtp.gmail.com"
-
 var self string
 
 func usage() {
-	fmt.Printf(`%v v%v - Simple commandline mail sender (repo: github.com/pepa65/mailer)
+	fmt.Printf(`%v v%v - Simple commandline SMTP client (repo: github.com/pepa65/mailer)
 Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
     CONTENT is either one of:
         -m|--message TEXT         Message text.
@@ -38,13 +56,16 @@ Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
         -b|--bcc EMAILS           Bcc email(s).
         -r|--reply EMAILS         Reply-To email(s).
         -f|--from NAME            The name to use with the USER's email.
+        -h|--help                 Only show this help text.
 Notes:
     1. If USER is not an email address, NAME should contain one!
     2. Emails can be like "you@and.me" or like "Some String <you@and.me>" and
        need to be comma-separated. Any arguments must survive shell-parsing!
     3. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
     4. Commandline errors print help text and the error to stdout and return 1.
-    5. Send errors print the error to stdout and return exitcode 2.
+    5. Errors with sending are printed to stdout and return exitcode 2.
+    6. If file ".mailer" is present in PWD its config parameters will be used.
+    7. Commandline parameters take precedence over Configfile parameters.
 `, self, version)
 }
 
@@ -63,11 +84,24 @@ func main() {
 		i = strings.IndexByte(self, '/')
 	}
 
-	// Usage on no arguments
+	// Use .mailer if present
 	nArgs := len(os.Args)
-	if nArgs == 1 {
-		usage()
-		return
+	var cfg Config
+	_, err := os.Stat(".mailer")
+	if err == nil { // .mailer present
+		cfgdata, err := ioutil.ReadFile(".mailer")
+		if err != nil {
+			errormsg("Config file '.mailer' not found")
+		}
+		err = yaml.UnmarshalStrict(cfgdata, &cfg)
+		if err != nil {
+			errormsg("Error in config file '.mailer':\n"+err.Error())
+		}
+	} else { // No .mailer in PWD
+		if nArgs == 1 { // Usage on no arguments
+			usage()
+			return
+		}
 	}
 
 	// Parse commandline
@@ -200,20 +234,47 @@ func main() {
 		}
 		i += 1
 	}
+	if cc == "" {
+		cc = cfg.CC
+	}
+	if bcc == "" {
+		bcc = cfg.BCC
+	}
+	if reply == "" {
+		reply = cfg.Reply
+	}
 	if to == "" {
-		errormsg("Mandatory option -t/--to missing")
+		to = cfg.To
+	}
+	if to == "" {
+		errormsg("Mandatory option 'to' missing")
 	}
 	if subject == "" {
-		errormsg("Mandatory option -s/--subject missing")
+		subject = cfg.Subject
+	}
+	if subject == "" {
+		errormsg("Mandatory option 'subject' missing")
 	}
 	if user == "" {
-		errormsg("Mandatory option -u/--user missing")
+		user = cfg.User
+	}
+	if user == "" {
+		errormsg("Mandatory option 'user' missing")
 	}
 	if password == "" {
-		errormsg("Mandatory option -p/--password missing")
+		password = cfg.Password
+	}
+	if password == "" {
+		errormsg("Mandatory option 'password' missing")
+	}
+	if server == "" {
+		server = cfg.Server
 	}
 	if server == "" {
 		server = defaultserver
+	}
+	if port == "" {
+		port = cfg.Port
 	}
 	if port == "" {
 		port = defaultport
@@ -221,8 +282,20 @@ func main() {
 	if port == "465" {
 		ssltls = true
 	}
+	if message == "" && file == "" && cfg.Message != "" && cfg.File != "" {
+		errormsg("Can't have both 'message' and 'file' options set in .mailer")
+	}
+	if message == "" {
+		message = cfg.Message
+	}
+	if file == "" {
+		file = cfg.File
+	}
 	if message == "" && file == "" {
-		errormsg("Content missing, neither -m/--message nor -F/--file given")
+		errormsg("Content missing, neither 'message' nor 'file' option given")
+	}
+	if message != "" && file != "" { // FILE (from commandline) takes precedence
+		message = ""
 	}
 	if password == "-" {
 		pwd := []byte{}
@@ -233,10 +306,18 @@ func main() {
 		password = string(pwd)
 	}
 
-	if from == "" { // FROM is USER if not given
-		from = user
-	} else if !strings.Contains(from, "@") { // FROM includes USER as email if no email given
-		from += " <" + user + ">"
+	if from == "" {
+		from = cfg.From
+	}
+	if !strings.Contains(from, "@") { // FROM does not contains email
+		if from == "" { // FROM not given, must use USER
+			from = user
+		} else { // FROM given as a NAME
+			from += " <" + user + ">"
+		}
+		if !strings.Contains(from, "@") { // No FROM email, also not in USER
+			errormsg("No 'from' email nor 'user' email")
+		}
 	}
 
 	// Populate email
@@ -266,7 +347,6 @@ func main() {
 	serverport := server + ":" + port
 	auth := smtp.PlainAuth("", user, password, server)
 	tc := &tls.Config{ServerName: server, InsecureSkipVerify: false}
-	var err error
 	if ssltls {
 		err = mail.SendWithTLS(serverport, auth, tc)
 	} else {
