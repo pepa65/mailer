@@ -15,22 +15,24 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.6.1"
+const version = "0.7.1"
 
 type Config struct {
-	User     string
-	Password string
-	Server   string
-	Port     string
-	TLS      string
-	From     string
-	CC       string
-	BCC      string
-	Reply    string
-	To       string
-	Subject  string
-	Message  string
-	File     string
+	User       string
+	Password   string
+	Server     string
+	Port       string
+	TLS        string
+	From       string
+	CC         string
+	BCC        string
+	Reply      string
+	Read       string
+	To         string
+	Subject    string
+	Message    string
+	File       string
+	Attachment string
 }
 
 var defaultport = "587"
@@ -38,34 +40,37 @@ var defaultserver = "smtp.gmail.com"
 var self string
 
 func usage() {
-	fmt.Printf(`%v v%v - Simple commandline SMTP client (repo: github.com/pepa65/mailer)
-Usage:  mailer CONTENT MANDATORIES [OPTIONALS]
-    CONTENT is either one of:
+	fmt.Printf(`%v v%v - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+Usage:  mailer ESSENTIALS BODY [OPTIONS]
+    ESSENTIALS:
+        -u|--user USER            For logging in to mail server. ^1
+        -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin.
+        -t|--to EMAILS            To email(s). ^2
+        -s|--subject TEXTLINE     Subject line.
+    BODY is either one of:
         -m|--message TEXT         Message text.
         -F|--file FILENAME        File containing the message text.
-    MANDATORIES:
-        -t|--to EMAILS            To email(s).
-        -s|--subject TEXT         Subject line.
-        -u|--user USER            For logging in to mail server. [1]
-        -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin.
-    OPTIONALS:
-        -S|--server SERVER        Mail server (default: `+defaultserver+`).
-        -P|--port PORT            Port, like 25 or 465 (default: `+defaultport+`). [3]
-        -T|--tls                  Use SSL/TLS instead of StartTLS. [3]
-        -c|--cc EMAILS            Cc email(s).
-        -b|--bcc EMAILS           Bcc email(s).
-        -r|--reply EMAILS         Reply-To email(s).
-        -f|--from NAME            The name to use with the USER's email.
+    OPTIONS:
+        -a|--attachment FILE      Filename to attach [multiple flags allowed].
+        -S|--server SERVER        Mail server [default: `+defaultserver+`].
+        -P|--port PORT            Port, like 25 or 465 [default: `+defaultport+`]. ^3
+        -T|--tls                  Use SSL/TLS instead of StartTLS. ^3
+        -c|--cc EMAILS            Cc email(s). ^2
+        -b|--bcc EMAILS           Bcc email(s). ^2
+        -r|--reply EMAILS         Reply-To email(s). ^2
+        -R|--read EMAILS          Email(s) to send ReadReceipts to. ^2
+        -f|--from NAME|EMAIL      The name to use with the USER's email. ^1
         -h|--help                 Only show this help text.
 Notes:
-    1. If USER is not an email address, NAME should contain one!
-    2. Emails can be like "you@and.me" or like "Some String <you@and.me>" and
-       need to be comma-separated. Any arguments must survive shell-parsing!
+    1. If USER is not an email address, '-f'/'--from' should have EMAIL.
+    2. EMAILS can be like "you@and.me" or like "Some String <you@and.me>" and
+       can be strung together comma-separated. Mind the shell's parsing!
     3. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
     4. Commandline errors print help text and the error to stdout and return 1.
     5. Errors with sending are printed to stdout and return exitcode 2.
-    6. If file ".mailer" is present in PWD its config parameters will be used.
+    6. If file '.mailer' is present in PWD, its config parameters will be used.
     7. Commandline parameters take precedence over Configfile parameters.
+       In the case of attachments, both sources will be used.
 `, self, version)
 }
 
@@ -106,8 +111,9 @@ func main() {
 
 	// Parse commandline
 	i = 1
-	var from, to, subject, user, password, server, port, cc, bcc, reply, message, file string
+	var from, to, subject, user, password, server, port, cc, bcc, reply, read, message, file string
 	var ssltls bool
+	var attachments []string
 	for i < nArgs {
 		switch os.Args[i] {
 		case "-f", "--from":
@@ -202,6 +208,15 @@ func main() {
 			}
 			reply = os.Args[i+1]
 			i = i + 1
+		case "-R", "--read":
+			if read != "" {
+				errormsg("Can't use -R/--read twice")
+			}
+			if i+2 > len(os.Args) {
+				errormsg("Flag -R/--read must have an argument")
+			}
+			read = os.Args[i+1]
+			i = i + 1
 		case "-m", "--message":
 			if message != "" {
 				errormsg("Can't use -m/--message twice")
@@ -219,12 +234,23 @@ func main() {
 				errormsg("Can't use -F/--file twice")
 			}
 			if message != "" {
-				errormsg("can't use both -m/--message and -F/--file flags")
+				errormsg("Can't use both -m/--message and -F/--file flags")
 			}
 			if i+2 > len(os.Args) {
 				errormsg("Flag -F/--file must have an argument")
 			}
 			file = os.Args[i+1]
+			i = i + 1
+		case "-a", "--attachment":
+			if i+2 > len(os.Args) {
+				errormsg("Flag -a/--attachment must have an argument")
+			}
+			attachment := os.Args[i+1]
+			if _, err := os.Stat(attachment); err == nil {
+				attachments = append(attachments, attachment)
+			} else {
+				errormsg("Attachment '"+attachment+"' not found")
+			}
 			i = i + 1
 		case "-h", "--help":
 			usage()
@@ -247,29 +273,32 @@ func main() {
 	if reply == "" {
 		reply = cfg.Reply
 	}
+	if read == "" {
+		read = cfg.Read
+	}
 	if to == "" {
 		to = cfg.To
 	}
 	if to == "" {
-		errormsg("Mandatory option 'to' missing")
+		errormsg("Essential option 'to' missing")
 	}
 	if subject == "" {
 		subject = cfg.Subject
 	}
 	if subject == "" {
-		errormsg("Mandatory option 'subject' missing")
+		errormsg("Essential option 'subject' missing")
 	}
 	if user == "" {
 		user = cfg.User
 	}
 	if user == "" {
-		errormsg("Mandatory option 'user' missing")
+		errormsg("Essential option 'user' missing")
 	}
 	if password == "" {
 		password = cfg.Password
 	}
 	if password == "" {
-		errormsg("Mandatory option 'password' missing")
+		errormsg("Essential option 'password' missing")
 	}
 	if server == "" {
 		server = cfg.Server
@@ -286,20 +315,24 @@ func main() {
 	if port == "465" {
 		ssltls = true
 	}
-	if message == "" && file == "" && cfg.Message != "" && cfg.File != "" {
-		errormsg("Can't have both 'message' and 'file' options set in .mailer")
-	}
-	if message == "" {
-		message = cfg.Message
-	}
-	if file == "" {
-		file = cfg.File
+	if message == "" && file == "" { // Rely on configfile for body
+		if cfg.Message != "" && cfg.File != "" { // Both set
+			errormsg("Can't have both 'message' and 'file' options set in .mailer")
+		} else if cfg.File != "" { // File set, use it
+			file = cfg.File
+		} else { // Message either set or empty
+			message = cfg.Message
+		}
 	}
 	if message == "" && file == "" {
 		errormsg("Content missing, neither 'message' nor 'file' option given")
 	}
-	if message != "" && file != "" { // FILE (from commandline) takes precedence
-		message = ""
+	if cfg.Attachment != "" {
+		if _, err := os.Stat(cfg.Attachment); err != nil {
+			errormsg("Attachment '"+cfg.Attachment+"' from .mailer not found")
+		} else {
+			attachments = append(attachments, cfg.Attachment)
+		}
 	}
 	if password == "-" {
 		pwd := []byte{}
@@ -309,7 +342,6 @@ func main() {
 		}
 		password = string(pwd)
 	}
-
 	if from == "" {
 		from = cfg.From
 	}
@@ -344,8 +376,17 @@ func main() {
 	if reply != "" {
 		mail.ReplyTo = strings.Split(reply, ",")
 	}
+	if read != "" {
+		mail.ReadReceipt = strings.Split(read, ",")
+	}
 	mail.Subject = subject
 	mail.Text = []byte(message)
+	for _, attachment := range attachments {
+		_, err := mail.AttachFile(attachment)
+		if err != nil {
+			errormsg("Could not attach file '"+attachment+"'")
+		}
+	}
 
 	// Send mail
 	serverport := server + ":" + port

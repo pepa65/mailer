@@ -2,7 +2,7 @@
 user: login@sm.tp
 password: thelongandsafepassword
 #server: smtp.google.com
-## If port is 465, TLS is automatic
+## If port is 465, SSL/TLS is automatic
 #port: 587
 #tls: yes
 ## If `user:` is not an email, definitely fill in an email at `from:`
@@ -13,6 +13,8 @@ password: thelongandsafepassword
 ## Must have `to:` and `subject:`
 to: must@send.to
 subject: Test subject
+## Only 1 attachment can be specified in .mailer, but multiple on the commandline
+attachment: go.sum
 ## Either `filename:` or `message:` should be given
 #filename: mailfile
 ## `All non-empty lines in `message: |` must start with at least 1 space
