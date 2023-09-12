@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.7.1"
+const version = "0.7.2"
 
 type Config struct {
 	User       string
@@ -51,7 +51,7 @@ Usage:  mailer ESSENTIALS BODY [OPTIONS]
         -m|--message TEXT         Message text.
         -F|--file FILENAME        File containing the message text.
     OPTIONS:
-        -a|--attachment FILE      Filename to attach [multiple flags allowed].
+        -a|--attachment FILE      File to attach [multiple flags allowed]. ^7
         -S|--server SERVER        Mail server [default: `+defaultserver+`].
         -P|--port PORT            Port, like 25 or 465 [default: `+defaultport+`]. ^3
         -T|--tls                  Use SSL/TLS instead of StartTLS. ^3
@@ -70,7 +70,7 @@ Notes:
     5. Errors with sending are printed to stdout and return exitcode 2.
     6. If file '.mailer' is present in PWD, its config parameters will be used.
     7. Commandline parameters take precedence over Configfile parameters.
-       In the case of attachments, both sources will be used.
+       In case of '-a'/'--attachment'/'attachment:', both sources will be used.
 `, self, version)
 }
 

@@ -2,7 +2,7 @@
 [![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
 
 # mailer - Simple commandline SMTP client
-* **v0.7.0**
+* **v0.7.2**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Completely config-less, send purely from the commandline
 * But parameters can also be set in `.mailer` in the current directory.
@@ -44,7 +44,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v0.7.1 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v0.7.2 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer ESSENTIALS BODY [OPTIONS]
     ESSENTIALS:
         -u|--user USER            For logging in to mail server. ^1
@@ -55,7 +55,7 @@ Usage:  mailer ESSENTIALS BODY [OPTIONS]
         -m|--message TEXT         Message text.
         -F|--file FILENAME        File containing the message text.
     OPTIONS:
-        -a|--attachment FILE      Filename to attach [multiple flags allowed].
+        -a|--attachment FILE      File to attach [multiple flags allowed]. ^7
         -S|--server SERVER        Mail server [default: smtp.gmail.com].
         -P|--port PORT            Port, like 25 or 465 [default: 587]. ^3
         -T|--tls                  Use SSL/TLS instead of StartTLS. ^3
@@ -74,9 +74,9 @@ Notes:
     5. Errors with sending are printed to stdout and return exitcode 2.
     6. If file '.mailer' is present in PWD, its config parameters will be used.
     7. Commandline parameters take precedence over Configfile parameters.
-       In the case of attachments, both sources will be used.
+       In case of '-a'/'--attachment'/'attachment:', both sources will be used.
 ```
 
 ### Config file
 The file `.mailer` in the current directory can be used to set some or all parameters.
-See the example file in this repo.
+See the example file in this repo. The fields are the same as the long option flags.
