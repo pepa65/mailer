@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.0.2**
+* **v1.0.3**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Completely config-less, send purely from the commandline.
 * But parameters can also be set in `.mailer` in the current directory.
@@ -45,7 +45,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.0.2 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.0.3 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer ESSENTIALS BODY [OPTIONS]
     ESSENTIALS:
         -u|--user USER            For logging in to mail server. ^1
@@ -67,7 +67,6 @@ Usage:  mailer ESSENTIALS BODY [OPTIONS]
         -r|--reply EMAILS         Reply-To email(s). ^2
         -R|--read EMAILS          Email(s) to send ReadReceipts to. ^2
         -f|--from NAME|EMAIL      The name to use with the USER's email. ^1
-        -H|--header               No empty line before BODY, extended header.
         -h|--help                 Only show this help text.
 Notes:
     1. If USER is not an email address, '-f'/'--from' should have EMAIL!
