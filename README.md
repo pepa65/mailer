@@ -1,8 +1,8 @@
+<img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" alt="mailer icon" align="right">
 [![Go Report Card](https://goreportcard.com/badge/github.com/pepa65/mailer)](https://goreportcard.com/report/github.com/pepa65/mailer)
-[![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
 
 # mailer - Simple commandline SMTP client
-* **v1.0.1**
+* **v1.0.2**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Completely config-less, send purely from the commandline.
 * But parameters can also be set in `.mailer` in the current directory.
@@ -45,7 +45,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.0.1 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.0.2 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer ESSENTIALS BODY [OPTIONS]
     ESSENTIALS:
         -u|--user USER            For logging in to mail server. ^1
