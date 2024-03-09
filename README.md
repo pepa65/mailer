@@ -2,7 +2,7 @@
 [![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
 
 # mailer - Simple commandline SMTP client
-* **v1.0.0**
+* **v1.0.1**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * Completely config-less, send purely from the commandline.
 * But parameters can also be set in `.mailer` in the current directory.
@@ -45,7 +45,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.0.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.0.1 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer ESSENTIALS BODY [OPTIONS]
     ESSENTIALS:
         -u|--user USER            For logging in to mail server. ^1
@@ -84,3 +84,6 @@ Notes:
 ### Config file
 The file `.mailer` in the current directory can be used to set some or all parameters.
 See the example file in this repo. The fields are the same as the long option flags.
+The YAML syntax for including long texts is tricky, so passing files is recommended.
+When using `|+` to include blocks of text, note that `: ` (colon-space) and ` #` (space-hash)
+are likely to cause a YAML syntax error... Replace space with ` ` (no-break space, U+00A0).

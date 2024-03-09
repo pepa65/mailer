@@ -18,13 +18,18 @@ subject: 'Test subject'
 attachment: go.sum
 ## Either `mfile:`/`nfile:` or `message:`/`nmessage:` should be given
 #mfile: mailfile
-## All non-empty lines in `message: |` (or `nmessage: |`) must start with at least 1 space
-message: |
+## All non-empty lines in `message: |+` (or `nmessage: |+`) must start with at least 1 space
+## Avoid all `: ` and ` #` or quote the whole message with single or double quotes (causing
+##  lines to be strung together, empty lines insert a newline).
+message: |+
  Hello there,
 
  This is an example message. Long lines should be fine.
+ When including a colon: don't follow it with a normal space..!
+ (Right here, U+00A0 no-break space was used.)
 
  Newlines stay end-of-lines.
  Grtz,
 
  The mailer
+
