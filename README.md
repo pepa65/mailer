@@ -1,5 +1,5 @@
-<img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" alt="mailer icon" align="right">
 [![Go Report Card](https://goreportcard.com/badge/github.com/pepa65/mailer)](https://goreportcard.com/report/github.com/pepa65/mailer)
+<img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
 * **v1.0.2**
