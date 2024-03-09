@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.7.3"
+const version = "1.0.0"
 
 type Config struct {
 	User       string
@@ -31,7 +31,9 @@ type Config struct {
 	To         string
 	Subject    string
 	Message    string
-	File       string
+	Mfile      string
+	Nmessage   string
+	Nfile      string
 	Attachment string
 }
 
@@ -47,9 +49,11 @@ Usage:  mailer ESSENTIALS BODY [OPTIONS]
         -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin.
         -t|--to EMAILS            To email(s). ^2
         -s|--subject TEXTLINE     Subject line.
-    BODY is either one of:
-        -m|--message TEXT         Message text.
-        -F|--file FILENAME        File containing the message text.
+    BODY can be both plaintext and html, but each from either string or file:
+        -m|--message PLAINTEXT    Message plain text.
+        -M|--mfile FILENAME       File containing the plain text message.
+        -n|--nmessage HTML        Message html.
+        -N|--nfile FILENAME       File containing the html message.
     OPTIONS:
         -a|--attachment FILE      File to attach [multiple flags allowed]. ^7
         -S|--server SERVER        Mail server [default: `+defaultserver+`].
@@ -111,7 +115,7 @@ func main() {
 
 	// Parse commandline
 	i = 1
-	var from, to, subject, user, password, server, port, cc, bcc, reply, read, message, file string
+	var from, to, subject, user, password, server, port, cc, bcc, reply, read, message, mfile, nmessage, nfile string
 	var ssltls bool
 	var attachments []string
 	for i < nArgs {
@@ -221,25 +225,49 @@ func main() {
 			if message != "" {
 				errormsg("Can't use -m/--message twice")
 			}
-			if file != "" {
-				errormsg("Can't use both -m/--message and -F/--file flags")
+			if mfile != "" {
+				errormsg("Can't use both -m/--message and -M/--mfile flags")
 			}
 			if i+2 > len(os.Args) {
 				errormsg("Flag -m/--message must have an argument")
 			}
 			message = os.Args[i+1]
 			i = i + 1
-		case "-F", "--file":
-			if file != "" {
+		case "-M", "--mfile":
+			if mfile != "" {
 				errormsg("Can't use -F/--file twice")
 			}
 			if message != "" {
-				errormsg("Can't use both -m/--message and -F/--file flags")
+				errormsg("Can't use both -m/--message and -M/--mfile flags")
 			}
 			if i+2 > len(os.Args) {
-				errormsg("Flag -F/--file must have an argument")
+				errormsg("Flag -M/--mfile must have an argument")
 			}
-			file = os.Args[i+1]
+			mfile = os.Args[i+1]
+			i = i + 1
+		case "-n", "--nmessage":
+			if nmessage != "" {
+				errormsg("Can't use -n/--nmessage twice")
+			}
+			if nfile != "" {
+				errormsg("Can't use both -n/--nmessage and -N/--nfile flags")
+			}
+			if i+2 > len(os.Args) {
+				errormsg("Flag -n/--nmessage must have an argument")
+			}
+			nmessage = os.Args[i+1]
+			i = i + 1
+		case "-N", "--nfile":
+			if nfile != "" {
+				errormsg("Can't use -N/--nfile twice")
+			}
+			if message != "" {
+				errormsg("Can't use both -n/--nmessage and -N/--nfile flags")
+			}
+			if i+2 > len(os.Args) {
+				errormsg("Flag -N/--nfile must have an argument")
+			}
+			nfile = os.Args[i+1]
 			i = i + 1
 		case "-a", "--attachment":
 			if i+2 > len(os.Args) {
@@ -315,17 +343,26 @@ func main() {
 	if port == "465" {
 		ssltls = true
 	}
-	if message == "" && file == "" { // Rely on configfile for body
-		if cfg.Message != "" && cfg.File != "" { // Both set
-			errormsg("Can't have both 'message' and 'file' options set in .mailer")
-		} else if cfg.File != "" { // File set, use it
-			file = cfg.File
+	if message == "" && mfile == "" { // Rely on configfile for plaintext body
+		if cfg.Message != "" && cfg.Mfile != "" { // Both set
+			errormsg("Can't have both 'message' and 'mfile' options set in .mailer")
+		} else if cfg.Mfile != "" { // Mfile set, use it
+			mfile = cfg.Mfile
 		} else { // Message either set or empty
 			message = cfg.Message
 		}
 	}
-	if message == "" && file == "" {
-		errormsg("Content missing, neither 'message' nor 'file' option given")
+	if nmessage == "" && nfile == "" { // Rely on configfile for html body
+		if cfg.Nmessage != "" && cfg.Nfile != "" { // Both set
+			errormsg("Can't have both 'nmessage' and 'nfile' options set in .mailer")
+		} else if cfg.Nfile != "" { // Nfile set, use it
+			nfile = cfg.Nfile
+		} else { // Message either set or empty
+			nmessage = cfg.Nmessage
+		}
+	}
+	if message == "" && mfile == "" && nmessage == "" && nfile == "" {
+		errormsg("Content missing, none of 'message'/'mfile'/'nmessage'/'nfile' given")
 	}
 	if cfg.Attachment != "" {
 		if _, err := os.Stat(cfg.Attachment); err != nil {
@@ -357,12 +394,19 @@ func main() {
 	}
 
 	// Populate email
-	if message == "" {
-		f, err := ioutil.ReadFile(file)
+	if message == "" && mfile != "" {
+		f, err := ioutil.ReadFile(mfile)
 		if err != nil {
-			errormsg("File not found: '" + file + "'")
+			errormsg("Mfile not found: '" + mfile + "'")
 		}
 		message = string(f)
+	}
+	if nmessage == "" && nfile != "" {
+		f, err := ioutil.ReadFile(nfile)
+		if err != nil {
+			errormsg("Nfile not found: '" + nfile + "'")
+		}
+		nmessage = string(f)
 	}
 	mail := email.NewEmail()
 	mail.From = from
@@ -381,6 +425,7 @@ func main() {
 	}
 	mail.Subject = subject
 	mail.Text = []byte(message)
+	mail.HTML = []byte(nmessage)
 	for _, attachment := range attachments {
 		_, err := mail.AttachFile(attachment)
 		if err != nil {

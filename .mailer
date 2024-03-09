@@ -12,12 +12,13 @@ password: thelongandsafepassword
 #reply: 
 ## Must have `to:` and `subject:`
 to: must@send.to
-subject: Test subject
+## Some characters cause problems (like colons), so best to surround it with quotes
+subject: 'Test subject'
 ## Only 1 attachment can be specified in .mailer, but multiple on the commandline
 attachment: go.sum
-## Either `filename:` or `message:` should be given
-#filename: mailfile
-## `All non-empty lines in `message: |` must start with at least 1 space
+## Either `mfile:`/`nfile:` or `message:`/`nmessage:` should be given
+#mfile: mailfile
+## All non-empty lines in `message: |` (or `nmessage: |`) must start with at least 1 space
 message: |
  Hello there,
 

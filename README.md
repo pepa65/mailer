@@ -2,12 +2,13 @@
 [![GoDoc](https://godoc.org/github.com/pepa65/mailer?status.svg)](https://godoc.org/github.com/pepa65/mailer)
 
 # mailer - Simple commandline SMTP client
-* **v0.7.3**
+* **v1.0.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
-* Completely config-less, send purely from the commandline
+* Completely config-less, send purely from the commandline.
 * But parameters can also be set in `.mailer` in the current directory.
-* No-install single binary
-* Defaulting to gmail's smtp server
+* No-install single binary.
+* Defaulting to gmail's smtp server.
+* Can send plaintext, html or both, and attachments.
 * Licence: GPLv3+
 
 ## Install
@@ -44,16 +45,18 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v0.7.3 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.0.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer ESSENTIALS BODY [OPTIONS]
     ESSENTIALS:
         -u|--user USER            For logging in to mail server. ^1
         -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin.
         -t|--to EMAILS            To email(s). ^2
         -s|--subject TEXTLINE     Subject line.
-    BODY is either one of:
-        -m|--message TEXT         Message text.
-        -F|--file FILENAME        File containing the message text.
+    BODY can be both plaintext and html, but each from either string or file:
+        -m|--message PLAINTEXT    Message plain text.
+        -M|--mfile FILENAME       File containing the plain text message.
+        -n|--nmessage HTML        Message html.
+        -N|--nfile FILENAME       File containing the html message.
     OPTIONS:
         -a|--attachment FILE      File to attach [multiple flags allowed]. ^7
         -S|--server SERVER        Mail server [default: smtp.gmail.com].
@@ -64,6 +67,7 @@ Usage:  mailer ESSENTIALS BODY [OPTIONS]
         -r|--reply EMAILS         Reply-To email(s). ^2
         -R|--read EMAILS          Email(s) to send ReadReceipts to. ^2
         -f|--from NAME|EMAIL      The name to use with the USER's email. ^1
+        -H|--header               No empty line before BODY, extended header.
         -h|--help                 Only show this help text.
 Notes:
     1. If USER is not an email address, '-f'/'--from' should have EMAIL!
