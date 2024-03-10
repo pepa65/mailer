@@ -2,13 +2,12 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.0.3**
+* **v1.1.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
-* Completely config-less, send purely from the commandline.
-* But parameters can also be set in `.mailer` in the current directory.
 * No-install single binary.
-* Defaulting to gmail's smtp server.
-* Can send plaintext, html or both, and attachments.
+* Completely config-less, can send purely from the commandline.
+* But parameters can also be set in a configfile.
+* Can send plaintext, html, or both, and attachments.
 * Licence: GPLv3+
 
 ## Install
@@ -45,44 +44,50 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.0.3 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
-Usage:  mailer ESSENTIALS BODY [OPTIONS]
-    ESSENTIALS:
-        -u|--user USER            For logging in to mail server. ^1
-        -p|--password PASSWORD    If PASSWORD is a dash, it is read from stdin.
-        -t|--to EMAILS            To email(s). ^2
-        -s|--subject TEXTLINE     Subject line.
-    BODY can be both plaintext and html, but each from either string or file:
-        -m|--message PLAINTEXT    Message plain text.
-        -M|--mfile FILENAME       File containing the plain text message.
-        -n|--nmessage HTML        Message html.
-        -N|--nfile FILENAME       File containing the html message.
+mailer v1.1.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+Usage:  mailer ESSENTIALS BODY OPTIONS
+    ESSENTIALS (like any option, can be set in a configfile):
+        -u|--user USER             For logging in to mail server. ^1
+        -p|--password PASSWORD     If PASSWORD is '-', it is read from stdin.
+        -t|--to EMAILS             To email(s). ^2
+        -s|--subject TEXTLINE      Subject line.
+    BODY (can be both plaintext and html, but each from either string or file):
+        -m|--message PLAINTEXT     Message string in plain text.
+        -M|--mfile FILENAME        File containing the plain text message.
+        -n|--nmessage HTML         Message string in html.
+        -N|--nfile FILENAME        File containing the html message.
     OPTIONS:
-        -a|--attachment FILE      File to attach [multiple flags allowed]. ^7
-        -S|--server SERVER        Mail server [default: smtp.gmail.com].
-        -P|--port PORT            Port, like 25 or 465 [default: 587]. ^3
-        -T|--tls                  Use SSL/TLS instead of StartTLS. ^3
-        -c|--cc EMAILS            Cc email(s). ^2
-        -b|--bcc EMAILS           Bcc email(s). ^2
-        -r|--reply EMAILS         Reply-To email(s). ^2
-        -R|--read EMAILS          Email(s) to send ReadReceipts to. ^2
-        -f|--from NAME|EMAIL      The name to use with the USER's email. ^1
-        -h|--help                 Only show this help text.
+        -o|--options CONFIGFILE    File with options. ^3
+        -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
+        -S|--server SERVER         Mail server [default: smtp.gmail.com].
+        -P|--port PORT             Port, like 25 or 465 [default: 587]. ^5
+        -T|--tls                   Use SSL/TLS instead of StartTLS. ^5
+        -c|--cc EMAILS             Cc email(s). ^2
+        -b|--bcc EMAILS            Bcc email(s). ^2
+        -r|--reply EMAILS          Reply-To email(s). ^2
+        -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
+        -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
+        -h|--help                  Only show this help text.
 Notes:
+    - Commandline options take precedence over CONFIGFILE options.
+    - Commandline errors print help text and the error to stdout and return 1.
+      Errors with sending are printed to stdout and return exitcode 2.
     1. If USER is not an email address, '-f'/'--from' should have EMAIL!
-    2. Emails can be like "you@and.me" or like "Some Name <you@and.me>" and
-       can be strung together comma-separated. Mind the shell's parsing!
-    3. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
-    4. Commandline errors print help text and the error to stdout and return 1.
-    5. Errors with sending are printed to stdout and return exitcode 2.
-    6. If file '.mailer' is present in PWD, its config parameters will be used.
-    7. Commandline parameters take precedence over Configfile parameters.
-       In case of '-a'/'--attachment'/'attachment:', both sources will be used.
+    2. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
+       can be strung together comma-separated. (Mind the shell's parsing!)
+    3. Could be the only option, if all ESSENTIALS and BODY options get set.
+       Commandline options take precedence over CONFIGFILE options.
+    4. All given in the CONFIGFILE and on the commandline will be used.
+    5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
 ```
 
-### Config file
-The file `.mailer` in the current directory can be used to set some or all parameters.
-See the example file in this repo. The fields are the same as the long option flags.
-The YAML syntax for including long texts is tricky, so passing files is recommended.
+### Configfile
+The file given after `-o`/`--options` can be used to set some or all options,
+see the example file `.mailer` in this repo.
+The field names are the same as the long option flags.
+
+The YAML syntax for including blocks of text is tricky, using files instead is more predictable.
 When using `|+` to include blocks of text, note that `: ` (colon-space) and ` #` (space-hash)
 are likely to cause a YAML syntax error... Replace space with ` ` (no-break space, U+00A0).
+YAML also supports various quoting options, where a newline gets inserted on an empty line.
+
