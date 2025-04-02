@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net/smtp"
 	"os"
 	"strings"
@@ -15,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.1.0"
+const version = "1.2.0"
 
 type Config struct { // Options in CONFIGFILE
 	User       string
@@ -38,12 +37,13 @@ type Config struct { // Options in CONFIGFILE
 }
 
 var defaultport = "587"
+var defaultcfg = "mailer.cfg"
 var defaultserver = "smtp.gmail.com"
 var self string
 
 func usage() {
 	fmt.Printf(`%v v%v - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
-Usage:  mailer [ESSENTIALS BODY OPTIONS]
+Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1
         -p|--password PASSWORD     If PASSWORD is '-', it is read from stdin.
@@ -55,7 +55,7 @@ Usage:  mailer [ESSENTIALS BODY OPTIONS]
         -n|--nmessage HTML         Message string in html.
         -N|--nfile FILENAME        File containing the html message.
     OPTIONS:
-        -o|--options CONFIGFILE    File with options. ^3
+        -o|--options CONFIGFILE    File with options [default: `+defaultcfg+`]. ^3
         -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
         -S|--server SERVER         Mail server [default: `+defaultserver+`].
         -P|--port PORT             Port, like 25 or 465 [default: `+defaultport+`]. ^5
@@ -73,8 +73,8 @@ Notes:
     1. If USER is not an email address, '-f'/'--from' should have EMAIL!
     2. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
        can be strung together comma-separated. (Mind the shell's parsing!)
-    3. Could be the only option, if all ESSENTIALS and BODY options get set.
-       Commandline options take precedence over CONFIGFILE options.
+    3. Could be the only option, if all ESSENTIALS and BODY options get set,
+       or if the default CONFIGFILE exists, no Commandline options are needed.
     4. All given in the CONFIGFILE and on the commandline will be used.
     5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
 `, self, version)
@@ -119,9 +119,9 @@ func main() {
 			cfile = os.Args[i+1]
 			_, err := os.Stat(cfile)
 			if err == nil { // File present
-				cfgdata, err := ioutil.ReadFile(cfile)
+				cfgdata, err := os.ReadFile(cfile)
 				if err != nil {
-					exitmsg("Config file '" + cfile + "' not found")
+					exitmsg("Config file '" + cfile + "' cannot be read")
 				}
 				err = yaml.UnmarshalStrict(cfgdata, &cfg)
 				if err != nil {
@@ -299,6 +299,19 @@ func main() {
 		}
 		i += 1
 	}
+	if cfile == "" { // Only try defaultcfg if not specified
+		_, err := os.Stat(defaultcfg)
+		if err == nil { // File present
+			cfgdata, err := os.ReadFile(defaultcfg)
+			if err != nil {
+				exitmsg("Config file '" + defaultcfg + "' cannot be read")
+			}
+			err = yaml.UnmarshalStrict(cfgdata, &cfg)
+			if err != nil {
+				exitmsg("Error in config file '" + defaultcfg + "':\n"+err.Error())
+			}
+		}
+	}
 	cfgtls := strings.ToLower(cfg.TLS)
 	if cfgtls != "" && cfgtls != "0" && cfgtls != "no" && cfgtls != "false" && cfgtls != "off" {
 		ssltls = true
@@ -356,7 +369,7 @@ func main() {
 	}
 	if message == "" && mfile == "" { // Rely on configfile for plaintext body
 		if cfg.Message != "" && cfg.Mfile != "" { // Both set
-			exitmsg("Can't have both 'message' and 'mfile' options set in .mailer")
+			exitmsg("Can't have both 'message' and 'mfile' options set in configfile")
 		} else if cfg.Mfile != "" { // Mfile set, use it
 			mfile = cfg.Mfile
 		} else { // Message either set or empty
@@ -365,7 +378,7 @@ func main() {
 	}
 	if nmessage == "" && nfile == "" { // Rely on configfile for html body
 		if cfg.Nmessage != "" && cfg.Nfile != "" { // Both set
-			exitmsg("Can't have both 'nmessage' and 'nfile' options set in .mailer")
+			exitmsg("Can't have both 'nmessage' and 'nfile' options set in configfile")
 		} else if cfg.Nfile != "" { // Nfile set, use it
 			nfile = cfg.Nfile
 		} else { // Message either set or empty
@@ -377,7 +390,7 @@ func main() {
 	}
 	if cfg.Attachment != "" {
 		if _, err := os.Stat(cfg.Attachment); err != nil {
-			exitmsg("Attachment '"+cfg.Attachment+"' from .mailer not found")
+			exitmsg("Attachment '"+cfg.Attachment+"' from configfile not found")
 		} else {
 			attachments = append(attachments, cfg.Attachment)
 		}
@@ -406,14 +419,14 @@ func main() {
 
 	// Populate email
 	if message == "" && mfile != "" {
-		f, err := ioutil.ReadFile(mfile)
+		f, err := os.ReadFile(mfile)
 		if err != nil {
 			exitmsg("Mfile not found: '" + mfile + "'")
 		}
 		message = string(f)
 	}
 	if nmessage == "" && nfile != "" {
-		f, err := ioutil.ReadFile(nfile)
+		f, err := os.ReadFile(nfile)
 		if err != nil {
 			exitmsg("Nfile not found: '" + nfile + "'")
 		}

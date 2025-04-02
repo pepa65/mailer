@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.1.0**
+* **v1.2.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
@@ -33,10 +33,10 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o mailer_osx
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o mailer.exe
 
 # More extreme shrinking:
-upx mailer*
+upx --best --lzma mailer*
 
-# Move them in the Go-binary path (if in your PATH):
-mv mailer* ~/go/bin/
+# Move them to the local binary directory (if in your PATH):
+mv mailer* ~/bin/
 
 # Or move to a manually managed binaries location:
 sudo mv mailer* /usr/local/bin/
@@ -44,8 +44,8 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.1.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
-Usage:  mailer ESSENTIALS BODY OPTIONS
+mailer v1.2.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1
         -p|--password PASSWORD     If PASSWORD is '-', it is read from stdin.
@@ -57,7 +57,7 @@ Usage:  mailer ESSENTIALS BODY OPTIONS
         -n|--nmessage HTML         Message string in html.
         -N|--nfile FILENAME        File containing the html message.
     OPTIONS:
-        -o|--options CONFIGFILE    File with options. ^3
+        -o|--options CONFIGFILE    File with options [default: mailer.cfg]. ^3
         -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
         -S|--server SERVER         Mail server [default: smtp.gmail.com].
         -P|--port PORT             Port, like 25 or 465 [default: 587]. ^5
@@ -76,14 +76,14 @@ Notes:
     2. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
        can be strung together comma-separated. (Mind the shell's parsing!)
     3. Could be the only option, if all ESSENTIALS and BODY options get set.
-       Commandline options take precedence over CONFIGFILE options.
+       or if the default CONFIGFILE exists, no Commandline options are needed.
     4. All given in the CONFIGFILE and on the commandline will be used.
     5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
 ```
 
 ### Configfile
 The file given after `-o`/`--options` can be used to set some or all options,
-see the example file `.mailer` in this repo.
+see the example file `mailer.cfg` in this repo.
 The field names are the same as the long option flags.
 
 The YAML syntax for including blocks of text is tricky, using files instead is more predictable.
