@@ -5,8 +5,9 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	"encoding/csv"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/smtp"
 	"os"
 	"strings"
@@ -15,7 +16,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.1.0"
+const version = "1.2.0"
 
 type Config struct { // Options in CONFIGFILE
 	User       string
@@ -35,11 +36,18 @@ type Config struct { // Options in CONFIGFILE
 	Nmessage   string
 	Nfile      string
 	Attachment string
+	CSVfile    string
 }
 
-var defaultport = "587"
-var defaultserver = "smtp.gmail.com"
-var self string
+type Record map[string]string
+
+var (
+	csvheader     []string
+	records       []Record
+	defaultport   = "587"
+	defaultserver = "smtp.gmail.com"
+	self          = ""
+)
 
 func usage() {
 	fmt.Printf(`%v v%v - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
@@ -57,6 +65,7 @@ Usage:  mailer [ESSENTIALS BODY OPTIONS]
     OPTIONS:
         -o|--options CONFIGFILE    File with options. ^3
         -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
+        -C|--csv                   Use CSV file for bulk sending.
         -S|--server SERVER         Mail server [default: `+defaultserver+`].
         -P|--port PORT             Port, like 25 or 465 [default: `+defaultport+`]. ^5
         -T|--tls                   Use SSL/TLS instead of StartTLS. ^5
@@ -86,6 +95,37 @@ func exitmsg(msg string) {
 	os.Exit(1)
 }
 
+func readCsv(csvfile string) {
+	file, err := os.Open(csvfile)
+	if err != nil {
+		exitmsg("Cannot open CSV file")
+  }
+
+  defer file.Close()
+	reader := csv.NewReader(file)
+	var headerread bool
+	for {
+		fields, err := reader.Read()
+		if err == io.EOF { // End of records
+			break
+		}
+		if err != nil {
+			exitmsg("Error reading CSV file")
+		}
+
+		if headerread { // Record
+			record := make(Record, len(csvheader))
+			for i, key := range csvheader {
+				record[key] = fields[i]
+			}
+			records = append(records, record)
+		} else { // Header
+			csvheader = fields
+			headerread = true
+		}
+	}
+}
+
 func main() {
 	var cfg Config
 	var err error
@@ -104,7 +144,7 @@ func main() {
 
 	// Parse commandline
 	i = 1
-	var from, to, subject, user, password, server, port, cc, bcc, reply, read, message, mfile, nmessage, nfile, cfile string
+	var from, to, subject, user, password, server, port, cc, bcc, reply, read, message, mfile, nmessage, nfile, cfile, csvfile string
 	var ssltls bool
 	var attachments []string
 	for i < nArgs {
@@ -113,85 +153,104 @@ func main() {
 			if cfile != "" {
 				exitmsg("Can't use -o/--options twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -o/--options must have an argument")
 			}
+
 			cfile = os.Args[i+1]
 			_, err := os.Stat(cfile)
 			if err == nil { // File present
-				cfgdata, err := ioutil.ReadFile(cfile)
+				cfgdata, err := os.ReadFile(cfile)
 				if err != nil {
-					exitmsg("Config file '" + cfile + "' not found")
+					exitmsg("Cannot read config file '" + cfile + "'")
 				}
+
 				err = yaml.UnmarshalStrict(cfgdata, &cfg)
 				if err != nil {
 					exitmsg("Error in config file '" + cfile + "':\n"+err.Error())
 				}
+
 			} else { // Not found
 				exitmsg("Config file '" + cfile + "' not found")
 			}
+
 			i = i + 1
 		case "-f", "--from":
 			if from != "" {
 				exitmsg("Can't use -f/--from twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -f/--from must have an argument")
 			}
+
 			from = os.Args[i+1]
 			i = i + 1
 		case "-t", "--to":
 			if to != "" {
 				exitmsg("Can't use -t/--to twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -t/--to must have an argument")
 			}
+
 			to = os.Args[i+1]
 			i = i + 1
 		case "-s", "--subject":
 			if subject != "" {
 				exitmsg("Can't use -s/--subject twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -s/--subject must have an argument")
 			}
+
 			subject = os.Args[i+1]
 			i = i + 1
 		case "-u", "--user":
 			if user != "" {
 				exitmsg("Can't use -u/--user twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -u/--user must have an argument")
 			}
+
 			user = os.Args[i+1]
 			i = i + 1
 		case "-p", "--password":
 			if password != "" {
 				exitmsg("Can't use -p/--password twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -p/--password must have an argument")
 			}
+
 			password = os.Args[i+1]
 			i = i + 1
 		case "-S", "--server":
 			if server != "" {
 				exitmsg("Can't use -S/--server twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -S/--server must have an argument")
 			}
+
 			server = os.Args[i+1]
 			i = i + 1
 		case "-P", "--port":
 			if port != "" {
 				exitmsg("Can't use -P/--port twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -P/--port must have an argument")
 			}
+
 			port = os.Args[i+1]
 			i = i + 1
 		case "-T", "--tls":
@@ -200,96 +259,128 @@ func main() {
 			if cc != "" {
 				exitmsg("Can't use -c/--cc twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -c/--cc must have an argument")
 			}
+
 			cc = os.Args[i+1]
 			i = i + 1
 		case "-b", "--bcc":
 			if bcc != "" {
 				exitmsg("Can't use -b/--bcc twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -b/--bcc must have an argument")
 			}
+
 			bcc = os.Args[i+1]
 			i = i + 1
 		case "-r", "--reply":
 			if reply != "" {
 				exitmsg("Can't use -r/--reply twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -r/--reply must have an argument")
 			}
+
 			reply = os.Args[i+1]
 			i = i + 1
 		case "-R", "--read":
 			if read != "" {
 				exitmsg("Can't use -R/--read twice")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -R/--read must have an argument")
 			}
+
 			read = os.Args[i+1]
 			i = i + 1
 		case "-m", "--message":
 			if message != "" {
 				exitmsg("Can't use -m/--message twice")
 			}
+
 			if mfile != "" {
 				exitmsg("Can't use both -m/--message and -M/--mfile flags")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -m/--message must have an argument")
 			}
+
 			message = os.Args[i+1]
 			i = i + 1
 		case "-M", "--mfile":
 			if mfile != "" {
 				exitmsg("Can't use -F/--file twice")
 			}
+
 			if message != "" {
 				exitmsg("Can't use both -m/--message and -M/--mfile flags")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -M/--mfile must have an argument")
 			}
+
 			mfile = os.Args[i+1]
 			i = i + 1
 		case "-n", "--nmessage":
 			if nmessage != "" {
 				exitmsg("Can't use -n/--nmessage twice")
 			}
+
 			if nfile != "" {
 				exitmsg("Can't use both -n/--nmessage and -N/--nfile flags")
 			}
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -n/--nmessage must have an argument")
 			}
+
 			nmessage = os.Args[i+1]
 			i = i + 1
 		case "-N", "--nfile":
 			if nfile != "" {
 				exitmsg("Can't use -N/--nfile twice")
 			}
+
 			if message != "" {
 				exitmsg("Can't use both -n/--nmessage and -N/--nfile flags")
 			}
+
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -N/--nfile must have an argument")
 			}
+
 			nfile = os.Args[i+1]
+			i = i + 1
+		case "-C", "--csv":
+			if csvfile != "" {
+				exitmsg("Can't use -C/--csv twice")
+			}
+
+			if i+2 > len(os.Args) {
+				exitmsg("Flag -C/--csv must have an argument")
+			}
+
+			csvfile = os.Args[i+1]
 			i = i + 1
 		case "-a", "--attachment":
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -a/--attachment must have an argument")
 			}
+
 			attachment := os.Args[i+1]
 			if _, err := os.Stat(attachment); err == nil {
 				attachments = append(attachments, attachment)
 			} else {
 				exitmsg("Attachment '"+attachment+"' not found")
 			}
+
 			i = i + 1
 		case "-h", "--help":
 			usage()
@@ -297,7 +388,14 @@ func main() {
 		default:
 			exitmsg("unknown commandline option: " + os.Args[i])
 		}
+
 		i += 1
+	}
+	if csvfile == "" && cfg.CSVfile != "" {
+		csvfile = cfg.CSVfile
+	}
+	if csvfile != "" {
+		readCsv(csvfile)
 	}
 	cfgtls := strings.ToLower(cfg.TLS)
 	if cfgtls != "" && cfgtls != "0" && cfgtls != "no" && cfgtls != "false" && cfgtls != "off" {
@@ -321,24 +419,28 @@ func main() {
 	if to == "" {
 		exitmsg("Essential option 'to' missing")
 	}
+
 	if subject == "" {
 		subject = cfg.Subject
 	}
 	if subject == "" {
 		exitmsg("Essential option 'subject' missing")
 	}
+
 	if user == "" {
 		user = cfg.User
 	}
 	if user == "" {
 		exitmsg("Essential option 'user' missing")
 	}
+
 	if password == "" {
 		password = cfg.Password
 	}
 	if password == "" {
 		exitmsg("Essential option 'password' missing")
 	}
+
 	if server == "" {
 		server = cfg.Server
 	}
@@ -357,7 +459,9 @@ func main() {
 	if message == "" && mfile == "" { // Rely on configfile for plaintext body
 		if cfg.Message != "" && cfg.Mfile != "" { // Both set
 			exitmsg("Can't have both 'message' and 'mfile' options set in .mailer")
-		} else if cfg.Mfile != "" { // Mfile set, use it
+		}
+
+		if cfg.Mfile != "" { // Mfile set, use it
 			mfile = cfg.Mfile
 		} else { // Message either set or empty
 			message = cfg.Message
@@ -366,7 +470,9 @@ func main() {
 	if nmessage == "" && nfile == "" { // Rely on configfile for html body
 		if cfg.Nmessage != "" && cfg.Nfile != "" { // Both set
 			exitmsg("Can't have both 'nmessage' and 'nfile' options set in .mailer")
-		} else if cfg.Nfile != "" { // Nfile set, use it
+		}
+
+		if cfg.Nfile != "" { // Nfile set, use it
 			nfile = cfg.Nfile
 		} else { // Message either set or empty
 			nmessage = cfg.Nmessage
@@ -375,12 +481,13 @@ func main() {
 	if message == "" && mfile == "" && nmessage == "" && nfile == "" {
 		exitmsg("Content missing, none of 'message'/'mfile'/'nmessage'/'nfile' given")
 	}
+
 	if cfg.Attachment != "" {
 		if _, err := os.Stat(cfg.Attachment); err != nil {
 			exitmsg("Attachment '"+cfg.Attachment+"' from .mailer not found")
-		} else {
-			attachments = append(attachments, cfg.Attachment)
 		}
+
+		attachments = append(attachments, cfg.Attachment)
 	}
 	if password == "-" {
 		pwd := []byte{}
@@ -406,17 +513,19 @@ func main() {
 
 	// Populate email
 	if message == "" && mfile != "" {
-		f, err := ioutil.ReadFile(mfile)
+		f, err := os.ReadFile(mfile)
 		if err != nil {
 			exitmsg("Mfile not found: '" + mfile + "'")
 		}
+
 		message = string(f)
 	}
 	if nmessage == "" && nfile != "" {
-		f, err := ioutil.ReadFile(nfile)
+		f, err := os.ReadFile(nfile)
 		if err != nil {
 			exitmsg("Nfile not found: '" + nfile + "'")
 		}
+
 		nmessage = string(f)
 	}
 	mail := email.NewEmail()

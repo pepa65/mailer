@@ -2,12 +2,13 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.1.0**
+* **v1.2.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
 * But parameters can also be set in a configfile.
 * Can send plaintext, html, or both, and attachments.
+* Can be used for templated bulk mail sending.
 * Licence: GPLv3+
 
 ## Install
@@ -44,7 +45,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.1.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.2.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer ESSENTIALS BODY OPTIONS
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1
@@ -59,6 +60,7 @@ Usage:  mailer ESSENTIALS BODY OPTIONS
     OPTIONS:
         -o|--options CONFIGFILE    File with options. ^3
         -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
+        -C|--csv                   Use CSV file for bulk sending.
         -S|--server SERVER         Mail server [default: smtp.gmail.com].
         -P|--port PORT             Port, like 25 or 465 [default: 587]. ^5
         -T|--tls                   Use SSL/TLS instead of StartTLS. ^5
@@ -83,11 +85,18 @@ Notes:
 
 ### Configfile
 The file given after `-o`/`--options` can be used to set some or all options,
-see the example file `.mailer` in this repo.
+see the example file `mailer.cfg` in this repo.
 The field names are the same as the long option flags.
 
 The YAML syntax for including blocks of text is tricky, using files instead is more predictable.
 When using `|+` to include blocks of text, note that `: ` (colon-space) and ` #` (space-hash)
 are likely to cause a YAML syntax error... Replace space with ` ` (no-break space, U+00A0).
 YAML also supports various quoting options, where a newline gets inserted on an empty line.
+
+### Bulk sending with CSV file
+For each record in the headered csv file, before sending,
+each header field template will be replaced in the BODY and in the CONFIGFILE (if given) by
+the corresponding record field. The Golang template syntax applies: https://pkg.go.dev/text/template
+But for the simple case, texts like `{{.HeaderField}}` in the BODY and CONFIGFILE will be replaced
+by the corresponding field of each record that falls under the header field `HeaderField`.
 
