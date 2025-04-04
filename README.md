@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.2.0**
+* **v1.2.1**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
@@ -44,7 +44,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.2.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.2.1 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1

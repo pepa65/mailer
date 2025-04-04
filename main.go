@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.2.0"
+const version = "1.2.1"
 
 type Config struct { // Options in CONFIGFILE
 	User       string
@@ -90,10 +90,6 @@ func main() {
 	var cfg Config
 	var err error
 	nArgs := len(os.Args)
-	if nArgs == 1 {
-		usage()
-		return
-	}
 	// Use name of binary/link
 	self = os.Args[0]
 	i := strings.IndexByte(self, '/')
