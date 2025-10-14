@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.2.1**
+* **v1.3.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
@@ -12,17 +12,13 @@
 
 ## Install
 ```
-# gobinaries.com:
-wget -qO- gobinaries.com/pepa65/mailer |sh
+# Download (replace BINARY by: mailer, mailer_pi, mailer_osx, mailer_bsd or mailer.exe)
+wget -O BINARY https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINARY?job=building
 
-# Go get (If Golang is installed properly):
+# Go get (If Golang is installed properly)
 go install github.com/pepa65/mailer@latest
 
-# Download:
-wget -O mailer https://gitlab.com/pepa65/mailer/-/jobs/artifacts/master/raw/BINARY?job=building
-# replace BINARY by: mailer, mailer_pi, mailer_osx, mailer_bsd or mailer.exe
-
-# Go build/install:
+# Go clone/install (If Golang is installed properly)
 git clone https://github.com/pepa65/mailer; cd mailer; go install
 
 # Smaller binaries:
@@ -44,7 +40,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.2.1 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.3.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1
@@ -68,6 +64,7 @@ Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
         -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
         -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
         -h|--help                  Only show this help text.
+        -V|--version               Only show the version.
 Notes:
     - Commandline options take precedence over CONFIGFILE options.
     - Commandline errors print help text and the error to stdout and return 1.

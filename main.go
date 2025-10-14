@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.2.1"
+const version = "1.3.0"
 
 type Config struct { // Options in CONFIGFILE
 	User       string
@@ -66,6 +66,7 @@ Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
         -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
         -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
         -h|--help                  Only show this help text.
+        -V|--version               Only show the version.
 Notes:
     - Commandline options take precedence over CONFIGFILE options.
     - Commandline errors print help text and the error to stdout and return 1.
@@ -289,6 +290,9 @@ func main() {
 			i = i + 1
 		case "-h", "--help":
 			usage()
+			return
+		case "-V", "--version":
+			fmt.Println(self + " v" + version)
 			return
 		default:
 			exitmsg("unknown commandline option: " + os.Args[i])
