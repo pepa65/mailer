@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.3.0**
+* **v1.4.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
@@ -40,7 +40,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.3.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.4.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1
@@ -53,7 +53,7 @@ Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
         -n|--nmessage HTML         Message string in html.
         -N|--nfile FILENAME        File containing the html message.
     OPTIONS:
-        -o|--options CONFIGFILE    File with options [default: mailer.cfg]. ^3
+        -o|--options CONFIGFILE    File with options [default: mailer.yml]. ^3
         -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
         -S|--server SERVER         Mail server [default: smtp.gmail.com].
         -P|--port PORT             Port, like 25 or 465 [default: 587]. ^5
@@ -80,7 +80,7 @@ Notes:
 
 ### Configfile
 The file given after `-o`/`--options` can be used to set some or all options,
-see the example file `mailer.cfg` in this repo.
+see the example file `mailer.yml` in this repo. The default is `$PWD/mailer.yml`.
 The field names are the same as the long option flags.
 
 The YAML syntax for including blocks of text is tricky, using files instead is more predictable.

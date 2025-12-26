@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.3.0"
+const version = "1.4.0"
 
 type Config struct { // Options in CONFIGFILE
 	User       string
@@ -37,7 +37,7 @@ type Config struct { // Options in CONFIGFILE
 }
 
 var defaultport = "587"
-var defaultcfg = "mailer.cfg"
+var defaultcfg = "mailer.yml"
 var defaultserver = "smtp.gmail.com"
 var self string
 
