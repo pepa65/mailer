@@ -34,6 +34,8 @@ builds:
         goarch: arm
       - goos: windows
         goarch: arm64
+      - goos: plan9
+      - goarch: arm
 
 checksum:
   name_template: 'checksums.txt'
