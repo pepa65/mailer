@@ -14,26 +14,27 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.4.1"
+const version = "1.5.0"
 
 type Config struct { // Options in CONFIGFILE
-	User       string
-	Password   string
-	Server     string
-	Port       string
-	TLS        string
-	From       string
-	CC         string
-	BCC        string
-	Reply      string
-	Read       string
-	To         string
-	Subject    string
-	Message    string
-	Mfile      string
-	Nmessage   string
-	Nfile      string
-	Attachment string
+	User        string
+	Password    string
+	Server      string
+	Port        string
+	TLS         string
+	From        string
+	CC          string
+	BCC         string
+	Reply       string
+	Read        string
+	Unsubscribe string
+	To          string
+	Subject     string
+	Message     string
+	Mfile       string
+	Nmessage    string
+	Nfile       string
+	Attachment  string
 }
 
 var defaultport = "587"
@@ -64,6 +65,7 @@ Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
         -b|--bcc EMAILS            Bcc email(s). ^2
         -r|--reply EMAILS          Reply-To email(s). ^2
         -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
+        -U|--unsubscribe           Comma-separated unsubscribe targets. ^6
         -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
         -h|--help                  Only show this help text.
         -V|--version               Only show the version.
@@ -78,6 +80,7 @@ Notes:
        or if the default CONFIGFILE exists, no Commandline options are needed.
     4. All given in the CONFIGFILE and on the commandline will be used.
     5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
+    6. Targets are email-addresses or urls (no 'mailto:', 'https://' or '<>').
 `, self, version)
 }
 
@@ -101,7 +104,7 @@ func main() {
 
 	// Parse commandline
 	i = 1
-	var from, to, subject, user, password, server, port, cc, bcc, reply, read, message, mfile, nmessage, nfile, cfile string
+	var from, to, subject, user, password, server, port, cc, bcc, reply, read, unsubscribe, message, mfile, nmessage, nfile, cfile string
 	var ssltls bool
 	var attachments []string
 	for i < nArgs {
@@ -229,6 +232,15 @@ func main() {
 			}
 			read = os.Args[i+1]
 			i = i + 1
+		case "-U", "--unsubscribe":
+			if unsubscribe != "" {
+				exitmsg("Can't use -U/--unsubscribe twice")
+			}
+			if i+2 > len(os.Args) {
+				exitmsg("Flag -U/--unsubscribe must have an argument")
+			}
+			unsubscribe = os.Args[i+1]
+			i = i + 1
 		case "-m", "--message":
 			if message != "" {
 				exitmsg("Can't use -m/--message twice")
@@ -327,6 +339,9 @@ func main() {
 	}
 	if read == "" {
 		read = cfg.Read
+	}
+	if unsubscribe == "" {
+		unsubscribe = cfg.Unsubscribe
 	}
 	if to == "" {
 		to = cfg.To
@@ -446,6 +461,27 @@ func main() {
 	}
 	if read != "" {
 		mail.ReadReceipt = strings.Split(read, ",")
+	}
+	if unsubscribe != "" {
+		parts := strings.Split(unsubscribe, ",")
+		var unsubs []string
+		url := false
+		for _, part := range parts {
+			if strings.ContainsRune(part, '@') {
+				unsubs = append(unsubs, fmt.Sprintf("<mailto:%s>", part))
+			} else {
+				if len(mail.To) > 1 {
+					fmt.Println("Error: using unsubscribe URL with multiple To-addresses")
+					os.Exit(3)
+				}
+				url = true
+				unsubs = append(unsubs, fmt.Sprintf("<https://%s%s>", part, mail.To[0]))
+			}
+		}
+		mail.Headers.Set("List-Unsubscribe", strings.Join(unsubs, ", "))
+		if url {
+			mail.Headers.Set("List-Unsubscribe-Post", "List-Unsubscribe=One-Click")
+		}
 	}
 	mail.Subject = subject
 	mail.Text = []byte(message)

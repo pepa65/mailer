@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.4.1**
+* **v1.5.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
@@ -40,7 +40,7 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.4.1 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.5.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER             For logging in to mail server. ^1
@@ -62,6 +62,7 @@ Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
         -b|--bcc EMAILS            Bcc email(s). ^2
         -r|--reply EMAILS          Reply-To email(s). ^2
         -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
+        -U|--unsubscribe           Comma-separated unsubscribe targets. ^6
         -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
         -h|--help                  Only show this help text.
         -V|--version               Only show the version.
@@ -76,7 +77,14 @@ Notes:
        or if the default CONFIGFILE exists, no Commandline options are needed.
     4. All given in the CONFIGFILE and on the commandline will be used.
     5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
+    6. Targets are email-addresses or URLs (no 'mailto:', 'https://' or '<>').
 ```
+
+Note that in case of the `-U`/`--unsubscribe` flag, that besides a List-Unsubscribe header,
+also a List-Unsubscribe-Post header is added if a URL is given, to make it One-Click.
+This does require that the URL accepts POST, and does not require further interaction.
+The To-address will be added at the end of the given URL, so structure the end like: `?email=`,
+and there should be only 1 To-address for this to be meaningful!
 
 ### Configfile
 The file given after `-o`/`--options` can be used to set some or all options,

@@ -10,6 +10,7 @@ password: thelongandsafepassword
 #cc: 
 #bcc: 
 #reply: 
+#unsubscribe: 
 ## Must have `to:` and `subject:`
 to: must@send.to
 ## Some characters cause problems (like colons), so best to surround it with quotes
