@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/pepa65/mailer/master/mailer.png" width="120" alt="mailer icon" align="right">
 
 # mailer - Simple commandline SMTP client
-* **v1.5.0**
+* **v1.6.0**
 * Repo: [github.com/pepa65/mailer](https://github.com/pepa65/mailer)
 * No-install single binary.
 * Completely config-less, can send purely from the commandline.
@@ -40,49 +40,48 @@ sudo mv mailer* /usr/local/bin/
 
 ## Usage
 ```
-mailer v1.5.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
+mailer v1.6.0 - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
-        -u|--user USER             For logging in to mail server. ^1
-        -p|--password PASSWORD     If PASSWORD is '-', it is read from stdin.
-        -t|--to EMAILS             To email(s). ^2
-        -s|--subject TEXTLINE      Subject line.
+        -u|--user USER           For logging in to mail server.
+        -p|--password PASSWORD   If PASSWORD is '-', it is read from stdin.
+        -e|--email EMAIL         The From email.
+        -t|--to EMAILS           The To email(s). ^1
+        -s|--subject TEXTLINE    The Subject line.
     BODY (can be both plaintext and html, but each from either string or file):
-        -m|--message PLAINTEXT     Message string in plain text.
-        -M|--mfile FILENAME        File containing the plain text message.
-        -n|--nmessage HTML         Message string in html.
-        -N|--nfile FILENAME        File containing the html message.
+        -m|--message PLAINTEXT   Message string in plain text.
+        -M|--messagefile FILE    File containing the plain text message.
+        -f|--formatted HTML      Message string in html.
+        -F|--formattedfile FILE  File containing the html message.
     OPTIONS:
-        -o|--options CONFIGFILE    File with options [default: mailer.yml]. ^3
-        -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
-        -S|--server SERVER         Mail server [default: smtp.gmail.com].
-        -P|--port PORT             Port, like 25 or 465 [default: 587]. ^5
-        -T|--tls                   Use SSL/TLS instead of StartTLS. ^5
-        -c|--cc EMAILS             Cc email(s). ^2
-        -b|--bcc EMAILS            Bcc email(s). ^2
-        -r|--reply EMAILS          Reply-To email(s). ^2
-        -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
-        -U|--unsubscribe           Comma-separated unsubscribe targets. ^6
-        -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
-        -h|--help                  Only show this help text.
-        -V|--version               Only show the version.
+        -o|--options CONFIGFILE  File with options [default: mailer.yml]. ^2
+        -a|--attachment FILE     File to attach [multiple flags allowed]. ^3
+        -S|--server SERVER       Mail server [default: smtp.gmail.com].
+        -P|--port PORT           Port, like 25 or 465 [default: 587]. ^4
+        -T|--tls                 Use SSL/TLS instead of StartTLS. ^4
+        -c|--cc EMAILS           The Cc email(s). ^1
+        -b|--bcc EMAILS          The Bcc email(s). ^1
+        -r|--reply EMAILS        The Reply-To email(s). ^1
+        -R|--read EMAILS         The email(s) to send ReadReceipts to. ^1
+        -U|--unsubscribe         Comma-separated unsubscribe targets. ^6
+        -V|--version             Only show the version.
+        -h|--help                Only show this help text.
 Notes:
     - Commandline options take precedence over CONFIGFILE options.
     - Commandline errors print help text and the error to stdout and return 1.
       Errors with sending are printed to stdout and return exitcode 2.
-    1. If USER is not an email address, '-f'/'--from' should have EMAIL!
-    2. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
-       can be strung together comma-separated. (Mind the shell's parsing!)
-    3. Could be the only option, if all ESSENTIALS and BODY options get set.
+    1. EMAILS can be like "you@and.me" or like "Some String <you@and.me>" and
+       must be strung together comma-separated. (Mind the shell's parsing!)
+    2. Could be the only option, if all ESSENTIALS and BODY options get set.
        or if the default CONFIGFILE exists, no Commandline options are needed.
-    4. All given in the CONFIGFILE and on the commandline will be used.
-    5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
-    6. Targets are email-addresses or URLs (no 'mailto:', 'https://' or '<>').
+    3. All given in the CONFIGFILE and on the commandline will be used.
+    4. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
+    5. Targets are email-addresses or URLs (no 'mailto:', 'https://' or '<>').
 ```
 
 Note that in case of the `-U`/`--unsubscribe` flag, that besides a List-Unsubscribe header,
 also a List-Unsubscribe-Post header is added if a URL is given, to make it One-Click.
-This does require that the URL accepts POST, and does not require further interaction.
+This does require that the URL accepts POST, so it does not require further interaction.
 The To-address will be added at the end of the given URL, so structure the end like: `?email=`,
 and there should be only 1 To-address for this to be meaningful!
 

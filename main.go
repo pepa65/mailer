@@ -14,27 +14,27 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.5.0"
+const version = "1.6.0"
 
 type Config struct { // Options in CONFIGFILE
-	User        string
-	Password    string
-	Server      string
-	Port        string
-	TLS         string
-	From        string
-	CC          string
-	BCC         string
-	Reply       string
-	Read        string
-	Unsubscribe string
-	To          string
-	Subject     string
-	Message     string
-	Mfile       string
-	Nmessage    string
-	Nfile       string
-	Attachment  string
+	User          string
+	Password      string
+	Server        string
+	Port          string
+	TLS           string
+	Email         string
+	CC            string
+	BCC           string
+	Reply         string
+	Read          string
+	Unsubscribe   string
+	To            string
+	Subject       string
+	Message       string
+	Messagefile   string
+	Formatted     string
+	Formattedfile string
+	Attachment    string
 }
 
 var defaultport = "587"
@@ -46,41 +46,40 @@ func usage() {
 	fmt.Printf(`%v v%v - Simple commandline SMTP client [repo: github.com/pepa65/mailer]
 Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
-        -u|--user USER             For logging in to mail server. ^1
-        -p|--password PASSWORD     If PASSWORD is '-', it is read from stdin.
-        -t|--to EMAILS             To email(s). ^2
-        -s|--subject TEXTLINE      Subject line.
+        -u|--user USER           For logging in to mail server.
+        -p|--password PASSWORD   If PASSWORD is '-', it is read from stdin.
+        -e|--email EMAIL         The From email.
+        -t|--to EMAILS           The To email(s). ^1
+        -s|--subject TEXTLINE    The Subject line.
     BODY (can be both plaintext and html, but each from either string or file):
-        -m|--message PLAINTEXT     Message string in plain text.
-        -M|--mfile FILENAME        File containing the plain text message.
-        -n|--nmessage HTML         Message string in html.
-        -N|--nfile FILENAME        File containing the html message.
+        -m|--message PLAINTEXT   Message string in plain text.
+        -M|--messagefile FILE    File containing the plain text message.
+        -f|--formatted HTML      Message string in html.
+        -N|--formattedfile FILE  File containing the html message.
     OPTIONS:
-        -o|--options CONFIGFILE    File with options [default: `+defaultcfg+`]. ^3
-        -a|--attachment FILE       File to attach [multiple flags allowed]. ^4
-        -S|--server SERVER         Mail server [default: `+defaultserver+`].
-        -P|--port PORT             Port, like 25 or 465 [default: `+defaultport+`]. ^5
-        -T|--tls                   Use SSL/TLS instead of StartTLS. ^5
-        -c|--cc EMAILS             Cc email(s). ^2
-        -b|--bcc EMAILS            Bcc email(s). ^2
-        -r|--reply EMAILS          Reply-To email(s). ^2
-        -R|--read EMAILS           Email(s) to send ReadReceipts to. ^2
-        -U|--unsubscribe           Comma-separated unsubscribe targets. ^6
-        -f|--from NAME|EMAIL       The name to use with the USER's email. ^1
-        -h|--help                  Only show this help text.
-        -V|--version               Only show the version.
+        -o|--options CONFIGFILE  File with options [default: `+defaultcfg+`]. ^2
+        -a|--attachment FILE     File to attach [multiple flags allowed]. ^3
+        -S|--server SERVER       Mail server [default: `+defaultserver+`].
+        -P|--port PORT           Port, like 25 or 465 [default: `+defaultport+`]. ^4
+        -T|--tls                 Use SSL/TLS instead of StartTLS. ^4
+        -c|--cc EMAILS           The Cc email(s). ^1
+        -b|--bcc EMAILS          The Bcc email(s). ^1
+        -r|--reply EMAILS        The Reply-To email(s). ^1
+        -R|--read EMAILS         The email(s) to send ReadReceipts to. ^1
+        -U|--unsubscribe         Comma-separated unsubscribe targets. ^5
+        -V|--version             Only show the version.
+        -h|--help                Only show this help text.
 Notes:
     - Commandline options take precedence over CONFIGFILE options.
     - Commandline errors print help text and the error to stdout and return 1.
       Errors with sending are printed to stdout and return exitcode 2.
-    1. If USER is not an email address, '-f'/'--from' should have EMAIL!
-    2. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
-       can be strung together comma-separated. (Mind the shell's parsing!)
-    3. Could be the only option, if all ESSENTIALS and BODY options get set,
+    1. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
+       must be strung together comma-separated. (Mind the shell's parsing!)
+    2. Could be the only option, if all ESSENTIALS and BODY options get set,
        or if the default CONFIGFILE exists, no Commandline options are needed.
-    4. All given in the CONFIGFILE and on the commandline will be used.
-    5. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
-    6. Targets are email-addresses or urls (no 'mailto:', 'https://' or '<>').
+    3. All given in the CONFIGFILE and on the commandline will be used.
+    4. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
+    5. Targets are email-addresses or urls (no 'mailto:', 'https://' or '<>').
 `, self, version)
 }
 
@@ -104,7 +103,7 @@ func main() {
 
 	// Parse commandline
 	i = 1
-	var from, to, subject, user, password, server, port, cc, bcc, reply, read, unsubscribe, message, mfile, nmessage, nfile, cfile string
+	var from, to, subject, user, password, server, port, cc, bcc, reply, read, unsubscribe, message, mfile, formatted, ffile, cfile string
 	var ssltls bool
 	var attachments []string
 	for i < nArgs {
@@ -131,12 +130,12 @@ func main() {
 				exitmsg("Config file '" + cfile + "' not found")
 			}
 			i = i + 1
-		case "-f", "--from":
+		case "-e", "--email":
 			if from != "" {
-				exitmsg("Can't use -f/--from twice")
+				exitmsg("Can't use -e/--email twice")
 			}
 			if i+2 > len(os.Args) {
-				exitmsg("Flag -f/--from must have an argument")
+				exitmsg("Flag -e/--email must have an argument")
 			}
 			from = os.Args[i+1]
 			i = i + 1
@@ -246,48 +245,48 @@ func main() {
 				exitmsg("Can't use -m/--message twice")
 			}
 			if mfile != "" {
-				exitmsg("Can't use both -m/--message and -M/--mfile flags")
+				exitmsg("Can't use both -m/--message and -M/--messagefile flags")
 			}
 			if i+2 > len(os.Args) {
 				exitmsg("Flag -m/--message must have an argument")
 			}
 			message = os.Args[i+1]
 			i = i + 1
-		case "-M", "--mfile":
+		case "-M", "--messagefile":
 			if mfile != "" {
-				exitmsg("Can't use -F/--file twice")
+				exitmsg("Can't use -M/--messagefile twice")
 			}
 			if message != "" {
-				exitmsg("Can't use both -m/--message and -M/--mfile flags")
+				exitmsg("Can't use both -m/--message and -M/--messagefile flags")
 			}
 			if i+2 > len(os.Args) {
-				exitmsg("Flag -M/--mfile must have an argument")
+				exitmsg("Flag -M/--messagefile must have an argument")
 			}
 			mfile = os.Args[i+1]
 			i = i + 1
-		case "-n", "--nmessage":
-			if nmessage != "" {
-				exitmsg("Can't use -n/--nmessage twice")
+		case "-f", "--formatted":
+			if formatted != "" {
+				exitmsg("Can't use -f/--formatted twice")
 			}
-			if nfile != "" {
-				exitmsg("Can't use both -n/--nmessage and -N/--nfile flags")
+			if ffile != "" {
+				exitmsg("Can't use both -f/--formatted and -F/--formattedfile flags")
 			}
 			if i+2 > len(os.Args) {
-				exitmsg("Flag -n/--nmessage must have an argument")
+				exitmsg("Flag -f/--formatted must have an argument")
 			}
-			nmessage = os.Args[i+1]
+			formatted = os.Args[i+1]
 			i = i + 1
-		case "-N", "--nfile":
-			if nfile != "" {
-				exitmsg("Can't use -N/--nfile twice")
+		case "-F", "--formattedfile":
+			if ffile != "" {
+				exitmsg("Can't use -F/--formattedfile twice")
 			}
 			if message != "" {
-				exitmsg("Can't use both -n/--nmessage and -N/--nfile flags")
+				exitmsg("Can't use both -f/--formatted and -F/--formattedfile flags")
 			}
 			if i+2 > len(os.Args) {
-				exitmsg("Flag -N/--nfile must have an argument")
+				exitmsg("Flag -F/--formattedfile must have an argument")
 			}
-			nfile = os.Args[i+1]
+			ffile = os.Args[i+1]
 			i = i + 1
 		case "-a", "--attachment":
 			if i+2 > len(os.Args) {
@@ -300,11 +299,11 @@ func main() {
 				exitmsg("Attachment '"+attachment+"' not found")
 			}
 			i = i + 1
-		case "-h", "--help":
-			usage()
-			return
 		case "-V", "--version":
 			fmt.Println(self + " v" + version)
+			return
+		case "-h", "--help":
+			usage()
 			return
 		default:
 			exitmsg("unknown commandline option: " + os.Args[i])
@@ -342,6 +341,12 @@ func main() {
 	}
 	if unsubscribe == "" {
 		unsubscribe = cfg.Unsubscribe
+	}
+	if from == "" {
+		from = cfg.Email
+	}
+	if from == "" {
+		exitmsg("Essential option 'email' missing")
 	}
 	if to == "" {
 		to = cfg.To
@@ -383,25 +388,25 @@ func main() {
 		ssltls = true
 	}
 	if message == "" && mfile == "" { // Rely on configfile for plaintext body
-		if cfg.Message != "" && cfg.Mfile != "" { // Both set
-			exitmsg("Can't have both 'message' and 'mfile' options set in configfile")
-		} else if cfg.Mfile != "" { // Mfile set, use it
-			mfile = cfg.Mfile
+		if cfg.Message != "" && cfg.Messagefile != "" { // Both set
+			exitmsg("Can't have both 'message' and 'messagefile' options set in configfile")
+		} else if cfg.Messagefile != "" { // Messagefile set, use it
+			mfile = cfg.Messagefile
 		} else { // Message either set or empty
 			message = cfg.Message
 		}
 	}
-	if nmessage == "" && nfile == "" { // Rely on configfile for html body
-		if cfg.Nmessage != "" && cfg.Nfile != "" { // Both set
-			exitmsg("Can't have both 'nmessage' and 'nfile' options set in configfile")
-		} else if cfg.Nfile != "" { // Nfile set, use it
-			nfile = cfg.Nfile
+	if formatted == "" && ffile == "" { // Rely on configfile for html body
+		if cfg.Formatted != "" && cfg.Formattedfile != "" { // Both set
+			exitmsg("Can't have both 'formatted' and 'formattedfile' options set in configfile")
+		} else if cfg.Formattedfile != "" { // Formattedfile set, use it
+			ffile = cfg.Formattedfile
 		} else { // Message either set or empty
-			nmessage = cfg.Nmessage
+			formatted = cfg.Formatted
 		}
 	}
-	if message == "" && mfile == "" && nmessage == "" && nfile == "" {
-		exitmsg("Content missing, none of 'message'/'mfile'/'nmessage'/'nfile' given")
+	if message == "" && mfile == "" && formatted == "" && ffile == "" {
+		exitmsg("Content missing, none of 'message'/'messagefile'/'formatted'/'formattedfile' given")
 	}
 	if cfg.Attachment != "" {
 		if _, err := os.Stat(cfg.Attachment); err != nil {
@@ -418,34 +423,21 @@ func main() {
 		}
 		password = string(pwd)
 	}
-	if from == "" {
-		from = cfg.From
-	}
-	if !strings.Contains(from, "@") { // FROM does not contains email
-		if from == "" { // FROM not given, must use USER
-			from = user
-		} else { // FROM given as a NAME
-			from += " <" + user + ">"
-		}
-		if !strings.Contains(from, "@") { // No FROM email, also not in USER
-			exitmsg("No 'from' email nor 'user' email")
-		}
-	}
 
 	// Populate email
 	if message == "" && mfile != "" {
 		f, err := os.ReadFile(mfile)
 		if err != nil {
-			exitmsg("Mfile not found: '" + mfile + "'")
+			exitmsg("Messagefile not found: '" + mfile + "'")
 		}
 		message = string(f)
 	}
-	if nmessage == "" && nfile != "" {
-		f, err := os.ReadFile(nfile)
+	if formatted == "" && ffile != "" {
+		f, err := os.ReadFile(ffile)
 		if err != nil {
-			exitmsg("Nfile not found: '" + nfile + "'")
+			exitmsg("Formattedfile not found: '" + ffile + "'")
 		}
-		nmessage = string(f)
+		formatted = string(f)
 	}
 	mail := email.NewEmail()
 	mail.From = from
@@ -485,7 +477,7 @@ func main() {
 	}
 	mail.Subject = subject
 	mail.Text = []byte(message)
-	mail.HTML = []byte(nmessage)
+	mail.HTML = []byte(formatted)
 	for _, attachment := range attachments {
 		_, err := mail.AttachFile(attachment)
 		if err != nil {
