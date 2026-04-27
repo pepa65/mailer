@@ -14,9 +14,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "1.6.0"
+const version = "1.7.0"
 
-type Config struct { // Options in CONFIGFILE
+type Config struct { // Options in CONFIGFILE, --flags all lowercase
 	User          string
 	Password      string
 	Server        string
@@ -48,38 +48,38 @@ Usage:  mailer [ESSENTIALS] [BODY] [OPTIONS]
     ESSENTIALS (like any option, can be set in a configfile):
         -u|--user USER           For logging in to mail server.
         -p|--password PASSWORD   If PASSWORD is '-', it is read from stdin.
-        -e|--email EMAIL         The From email.
-        -t|--to EMAILS           The To email(s). ^1
+        -e|--email EMAIL         The From email. ^1
+        -t|--to EMAILS           The To email(s). ^1 ^2
         -s|--subject TEXTLINE    The Subject line.
     BODY (can be both plaintext and html, but each from either string or file):
         -m|--message PLAINTEXT   Message string in plain text.
         -M|--messagefile FILE    File containing the plain text message.
         -f|--formatted HTML      Message string in html.
-        -N|--formattedfile FILE  File containing the html message.
+        -F|--formattedfile FILE  File containing the html message.
     OPTIONS:
-        -o|--options CONFIGFILE  File with options [default: `+defaultcfg+`]. ^2
-        -a|--attachment FILE     File to attach [multiple flags allowed]. ^3
+        -o|--options CONFIGFILE  File with options [default: `+defaultcfg+`]. ^3
+        -a|--attachment FILE     File to attach [multiple flags allowed]. ^4
         -S|--server SERVER       Mail server [default: `+defaultserver+`].
-        -P|--port PORT           Port, like 25 or 465 [default: `+defaultport+`]. ^4
-        -T|--tls                 Use SSL/TLS instead of StartTLS. ^4
-        -c|--cc EMAILS           The Cc email(s). ^1
-        -b|--bcc EMAILS          The Bcc email(s). ^1
-        -r|--reply EMAILS        The Reply-To email(s). ^1
-        -R|--read EMAILS         The email(s) to send ReadReceipts to. ^1
-        -U|--unsubscribe         Comma-separated unsubscribe targets. ^5
+        -P|--port PORT           Port, like 25 or 465 [default: `+defaultport+`]. ^5
+        -T|--tls                 Use SSL/TLS instead of StartTLS. ^5
+        -c|--cc EMAILS           The Cc email(s). ^1 ^2
+        -b|--bcc EMAILS          The Bcc email(s). ^1 ^2
+        -r|--reply EMAILS        The Reply-To email(s). ^1 ^2
+        -R|--read EMAILS         The email(s) to send ReadReceipts to. ^1 ^2
+        -U|--unsubscribe         Comma-separated unsubscribe targets. ^6
         -V|--version             Only show the version.
         -h|--help                Only show this help text.
 Notes:
     - Commandline options take precedence over CONFIGFILE options.
     - Commandline errors print help text and the error to stdout and return 1.
-      Errors with sending are printed to stdout and return exitcode 2.
-    1. EMAILs can be like "you@and.me" or like "Some String <you@and.me>" and
-       must be strung together comma-separated. (Mind the shell's parsing!)
-    2. Could be the only option, if all ESSENTIALS and BODY options get set,
-       or if the default CONFIGFILE exists, no Commandline options are needed.
-    3. All given in the CONFIGFILE and on the commandline will be used.
-    4. StartTLS is the default, except when PORT is 465, then SSL/TLS is used.
-    5. Targets are email-addresses or urls (no 'mailto:', 'https://' or '<>').
+    - Sending errors are printed to stdout and return exitcode 2.
+    1. EMAIL can be like "you@and.me" or like "Some String <you@and.me>".
+    2. EMAILS must be comma-separated. (Easiest to enclose EMAILS in quotes.)
+    3. Could be the only option, if all ESSENTIALS and BODY options get set.
+       If the default CONFIGFILE exists, no Commandline arguments are needed.
+    4. All FILEs given in the CONFIGFILE and on the commandline will be used.
+    5. If -T/--tls is used, the default port switches to 465.
+    6. Targets are email-addresses or urls (no 'mailto:', 'https://' or '<>').
 `, self, version)
 }
 
@@ -381,11 +381,11 @@ func main() {
 	if port == "" {
 		port = cfg.Port
 	}
+	if ssltls {
+		defaultport = "465"
+	}
 	if port == "" {
 		port = defaultport
-	}
-	if port == "465" {
-		ssltls = true
 	}
 	if message == "" && mfile == "" { // Rely on configfile for plaintext body
 		if cfg.Message != "" && cfg.Messagefile != "" { // Both set
@@ -406,7 +406,7 @@ func main() {
 		}
 	}
 	if message == "" && mfile == "" && formatted == "" && ffile == "" {
-		exitmsg("Content missing, none of 'message'/'messagefile'/'formatted'/'formattedfile' given")
+		exitmsg("Body missing, none of 'message'/'messagefile'/'formatted'/'formattedfile' given")
 	}
 	if cfg.Attachment != "" {
 		if _, err := os.Stat(cfg.Attachment); err != nil {
